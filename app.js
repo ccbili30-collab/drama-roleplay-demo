@@ -1,161 +1,102 @@
 const loadingSteps = [
   "接上短视频结尾",
-  "生成关卡冲突",
-  "装载角色成长线",
+  "装入角色状态",
+  "生成互动选项",
 ];
 
-const stats = [
-  { key: "prestige", label: "威望" },
-  { key: "survival", label: "生存" },
-  { key: "clue", label: "线索" },
-  { key: "allies", label: "人脉" },
-  { key: "alert", label: "大伯警觉" },
+const tools = [
+  { name: "旧书海图", effect: { clue: 4 }, note: "强化线索" },
+  { name: "分账旧约", effect: { prestige: 3 }, note: "强化威望" },
+  { name: "木箱钥匙", effect: { survival: 3 }, note: "强化生存" },
 ];
 
-const player = {
-  name: "你",
-  role: "被大伯逼问的年轻船民",
-  hp: 68,
-  trust: 16,
-  clue: "旧书海图",
-  equipment: [
-    { name: "旧书海图", note: "木箱里翻出的坐标线索" },
-    { name: "分账旧约", note: "大伯亲口说过赚了钱对半分" },
-    { name: "酒杯", note: "宴席上能打断局面的东西" },
-    { name: "木箱钥匙", note: "还能回去继续查旧箱" },
-  ],
-};
-
-const characters = {
-  gm: { name: "旁白", short: "旁" },
-  uncle: { name: "大伯", short: "伯" },
-  accountant: { name: "账房", short: "账" },
-  deckhand: { name: "船工阿七", short: "七" },
-  user: { name: "你", short: "你" },
-};
-
-const levels = [
+const chapters = [
   {
     title: "宴席逼问",
-    mood: "压迫 / 海上生存",
-    scene: "短视频最后一幕接上：宴席忽然静下来。你刚提到当年那句“赚了钱对半分”，大伯的脸色沉了下去。",
-    line: { speaker: "uncle", text: "你怎么在这片海上活下去？" },
-    prompt: "这不是闲聊，是第一关的生存判定。你要用一个选择决定自己在这片海上的第一种成长方向。",
+    speaker: "大伯",
+    text: "你怎么在这片海上活下去？",
+    setup: "宴席忽然静下来。你刚提到当年“赚了钱对半分”的旧约，所有人都看向大伯。",
     choices: [
       {
         label: "逼他认账",
-        action: "我当众逼大伯承认当年赚了钱对半分的约定。",
+        text: "当众逼大伯承认当年的分账约定。",
         effect: { prestige: 14, alert: 12, survival: -4 },
-        result: "你没有退。桌边的年轻船工第一次抬头看你，大伯的笑却冷了下来。你赢到一点威望，也把自己推到了明处。",
-        unlock: "支线种子：敢跟你站队的人，会从沉默里露头。",
+        result: "你没有退。桌边的年轻船工第一次抬头看你，大伯的笑却冷了下来。",
       },
       {
         label: "亮出海图",
-        action: "我拿出旧书海图，反问他为什么害怕这片海。",
+        text: "拿出旧书海图，反问他为什么害怕这片海。",
         effect: { clue: 16, alert: 10, prestige: 4 },
-        result: "旧书一露，屋里有几个人同时变了脸。大伯没接你的话，只盯着海图边角的坐标。",
-        unlock: "支线种子：未知海域坐标被激活。",
+        result: "旧书一露，屋里有几个人同时变了脸。大伯只盯着海图边角的坐标。",
       },
       {
         label: "观察站队",
-        action: "我先忍住，观察宴席上谁站在大伯那边。",
+        text: "先忍住，观察宴席上谁站在大伯那边。",
         effect: { allies: 12, survival: 8, prestige: -2 },
-        result: "你把话咽回去，开始看每个人的手和眼神。账房在听到旧约时摸了一下袖口，那里面可能有账本。",
-        unlock: "支线种子：账房成为可接触对象。",
-      },
-      {
-        label: "摔杯离席",
-        action: "我直接摔杯离席，回去查旧木箱里的坐标。",
-        effect: { survival: 6, clue: 10, alert: 8, allies: -3 },
-        result: "杯子碎在地上，你趁乱离开。你保住主动权，但宴席上的人会把你的离场解读成宣战。",
-        unlock: "支线种子：夜查木箱提前开启。",
+        result: "你把话咽回去，开始看每个人的眼神。账房摸了一下袖口。",
       },
     ],
   },
   {
     title: "账房袖口",
-    mood: "人脉 / 旧账",
-    scene: "宴席散后，账房从后门离开。他走得很慢，像是在等一个胆子够大的人跟上。",
-    line: { speaker: "accountant", text: "当年的账不是不能查，只是查了就没人能装不知道。" },
-    prompt: "第二关决定你怎么获得旧账：靠威压、交易、保护，还是继续查海图。",
+    speaker: "账房",
+    text: "当年的账不是不能查，只是查了就没人能装不知道。",
+    setup: "宴席散后，账房从后门离开。他走得很慢，像是在等一个胆子够大的人跟上。",
     choices: [
       {
         label: "许诺保护",
-        action: "我告诉账房，只要他说出旧账，我会保证他今晚能安全离开码头。",
+        text: "告诉账房，只要他说出旧账，你会保证他今晚能离开码头。",
         effect: { allies: 14, survival: 5, alert: 4 },
         result: "账房终于把半截账页塞给你。上面不是金额，而是一串船名和出海日期。",
-        unlock: "获得：半截账页。",
       },
       {
-        label: "拿旧约压他",
-        action: "我把分账旧约拍在他面前，让他承认当年谁拿走了钱。",
+        label: "旧约压他",
+        text: "把分账旧约拍在他面前，让他承认当年谁拿走了钱。",
         effect: { prestige: 10, clue: 8, alert: 8 },
         result: "账房被你逼退一步。他说出一个船名，又立刻闭嘴，因为巷口有人在看。",
-        unlock: "获得：沉船船名。",
       },
       {
-        label: "用海图交换",
-        action: "我只给他看海图的一角，问他是否认得这个坐标。",
+        label: "海图交换",
+        text: "只给他看海图一角，问他是否认得这个坐标。",
         effect: { clue: 15, allies: 5, alert: 6 },
-        result: "账房认出了坐标，却先问你旧书是不是从木箱里拿的。他知道的比账本更多。",
-        unlock: "获得：坐标见证人。",
-      },
-      {
-        label: "放他走",
-        action: "我不逼账房，只记住他离开的路线，先确认有没有人跟踪。",
-        effect: { survival: 12, allies: 6, clue: 3 },
-        result: "你没有惊动他，反而看见船工阿七替他挡了一次视线。原来沉默的人不止一个。",
-        unlock: "获得：阿七的善意。",
+        result: "账房认出了坐标，却先问你旧书是不是从木箱里拿的。",
       },
     ],
   },
   {
     title: "夜查木箱",
-    mood: "线索 / 危险",
-    scene: "夜里潮气很重。旧木箱还在原处，锁孔边有新划痕，说明你离席后已经有人来过。",
-    line: { speaker: "gm", text: "旧书里的坐标、半截账页和船名开始互相对上。那片海不是传说，是被人藏起来的债。" },
-    prompt: "第三关决定主角成长为哪种人：追真相、找盟友、保命，或正面对抗。",
+    speaker: "旁白",
+    text: "旧书里的坐标、半截账页和船名开始互相对上。",
+    setup: "夜里潮气很重。旧木箱还在原处，锁孔边有新划痕，说明已经有人来过。",
     choices: [
       {
         label: "拼出坐标",
-        action: "我把旧书海图和账页拼在一起，优先确认未知海域的位置。",
+        text: "把旧书海图和账页拼在一起，确认未知海域的位置。",
         effect: { clue: 18, survival: 4, alert: 5 },
-        result: "坐标拼上了。那不是藏宝点，而是一条被删掉的航线，终点标着大伯年轻时的船号。",
-        unlock: "成长方向：真相追索者。",
+        result: "坐标拼上了。那不是藏宝点，而是一条被删掉的航线。",
       },
       {
         label: "找阿七上船",
-        action: "我去找船工阿七，问他愿不愿意陪我出一次夜海。",
+        text: "去找船工阿七，问他愿不愿意陪你出一次夜海。",
         effect: { allies: 16, survival: 8, alert: 4 },
-        result: "阿七没有立刻答应，只问你一句：如果大伯派人追，你敢不敢不回头？",
-        unlock: "成长方向：结盟生存者。",
+        result: "阿七没有立刻答应，只问你：如果大伯派人追，你敢不敢不回头？",
       },
       {
-        label: "先藏证据",
-        action: "我把旧书和账页分开藏，留一份假线索给来翻箱的人。",
+        label: "藏起证据",
+        text: "把旧书和账页分开藏，留一份假线索给来翻箱的人。",
         effect: { survival: 16, clue: 5, alert: -4 },
         result: "半夜果然有人来翻箱。他拿走了假线索，而你第一次让大伯的眼线扑空。",
-        unlock: "成长方向：谨慎布局者。",
-      },
-      {
-        label: "约大伯码头见",
-        action: "我托人传话，让大伯明早码头见，旧约和海图一起算。",
-        effect: { prestige: 18, alert: 14, allies: -4 },
-        result: "消息传出去后，码头比平时更早亮灯。有人怕你赢，有人等你死。",
-        unlock: "成长方向：正面对抗者。",
       },
     ],
   },
 ];
 
 const state = {
-  levelIndex: 0,
-  messages: [],
-  inventoryOpen: false,
-  customOpen: false,
-  selectedEquipment: new Set(),
-  selectedThisLevel: false,
+  chapterIndex: 0,
+  selectedTools: new Set(),
+  resolving: false,
   finished: false,
+  customOpen: false,
   scores: {
     prestige: 12,
     survival: 18,
@@ -163,7 +104,6 @@ const state = {
     allies: 8,
     alert: 10,
   },
-  flags: [],
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -174,51 +114,37 @@ const els = {
   dramaVideo: $("#dramaVideo"),
   swipeGate: $("#swipeGate"),
   loading: $("#loadingPanel"),
-  game: $("#gamePanel"),
   loadingText: $("#loadingText"),
-  sceneIndex: $("#sceneIndex"),
+  game: $("#gamePanel"),
+  nodeIndex: $("#nodeIndex"),
   sceneTitle: $("#sceneTitle"),
-  mood: $("#sceneMood"),
-  messages: $("#messageList"),
-  inventoryPanel: $("#inventoryPanel"),
-  toggleInventory: $("#toggleInventoryButton"),
-  statusName: $("#statusName"),
-  statusRole: $("#statusRole"),
-  statusHp: $("#statusHp"),
-  statusTrust: $("#statusTrust"),
-  statusClue: $("#statusClue"),
-  equipmentList: $("#equipmentList"),
-  toolbeltList: $("#toolbeltList"),
-  playForm: $("#playForm"),
-  input: $("#playerInput"),
-  nodeHint: $("#nodeHint"),
-  nodeTrail: $("#nodeTrail"),
-  sceneIcon: $("#sceneIcon"),
-  sceneCallout: $("#sceneCallout"),
-  sceneOutcome: $("#sceneOutcome"),
+  statPrestige: $("#statPrestige"),
+  statClue: $("#statClue"),
+  statAlert: $("#statAlert"),
+  toolRow: $("#toolRow"),
+  speakerName: $("#speakerName"),
+  storyText: $("#storyText"),
+  resultNote: $("#resultNote"),
+  choiceGrid: $("#choiceGrid"),
+  customForm: $("#customForm"),
+  customInput: $("#customInput"),
   advanceBar: $("#advanceBar"),
   toast: $("#toast"),
-  statPrestige: $("#statPrestige"),
-  statSurvival: $("#statSurvival"),
-  statClue: $("#statClue"),
-  statAllies: $("#statAllies"),
-  statAlert: $("#statAlert"),
-  barPrestige: $("#barPrestige"),
-  barSurvival: $("#barSurvival"),
-  barClue: $("#barClue"),
-  barAllies: $("#barAllies"),
-  barAlert: $("#barAlert"),
 };
 
-let toastTimer = 0;
 let touchStartY = 0;
-let transitionTimer = 0;
+let toastTimer = 0;
+let advanceTimer = 0;
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function clampScore(value) {
+function currentChapter() {
+  return chapters[state.chapterIndex] || chapters.at(-1);
+}
+
+function clamp(value) {
   return Math.max(0, Math.min(100, value));
 }
 
@@ -228,7 +154,7 @@ function showToast(text) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => {
     els.toast.hidden = true;
-  }, 1800);
+  }, 1600);
 }
 
 function setPanel(panel) {
@@ -237,60 +163,43 @@ function setPanel(panel) {
   els.game.hidden = panel !== "game";
 }
 
-function resetStoryPlayer() {
+function resetVideo() {
   els.dramaVideo.pause();
   els.dramaVideo.currentTime = 0;
   els.storyPlayer.classList.remove("is-ended");
   els.swipeGate.hidden = true;
 }
 
-function finishStoryPlayer() {
+function playVideo() {
+  resetVideo();
+  setPanel("video");
+  const playPromise = els.dramaVideo.play();
+  if (playPromise?.catch) {
+    playPromise.catch(() => showToast("点一下视频即可开始播放。"));
+  }
+}
+
+function finishVideo() {
   els.storyPlayer.classList.add("is-ended");
   els.swipeGate.hidden = false;
 }
 
-function playStoryPreview() {
-  resetStoryPlayer();
-  setPanel("video");
-  const playPromise = els.dramaVideo.play();
-  if (playPromise?.catch) {
-    playPromise.catch(() => {
-      showToast("点一下视频即可开始播放。");
-    });
+async function bootGame() {
+  setPanel("loading");
+  for (const step of loadingSteps) {
+    els.loadingText.textContent = `${step}...`;
+    await sleep(180);
   }
-}
 
-function currentLevel() {
-  return levels[state.levelIndex] || levels.at(-1);
-}
-
-function character(id) {
-  return characters[id] || characters.gm;
-}
-
-function effectText(effect) {
-  return Object.entries(effect)
-    .filter(([, value]) => value)
-    .map(([key, value]) => {
-      const label = stats.find((stat) => stat.key === key)?.label || key;
-      return `${label}${value > 0 ? "+" : ""}${value}`;
-    })
-    .join(" / ");
-}
-
-function applyEffect(effect) {
-  Object.entries(effect).forEach(([key, value]) => {
-    state.scores[key] = clampScore((state.scores[key] || 0) + value);
-  });
-}
-
-function toolEffect(tools) {
-  const effect = {};
-  if (tools.includes("旧书海图")) effect.clue = 4;
-  if (tools.includes("分账旧约")) effect.prestige = 3;
-  if (tools.includes("酒杯")) effect.alert = 2;
-  if (tools.includes("木箱钥匙")) effect.survival = 3;
-  return effect;
+  clearTimeout(advanceTimer);
+  state.chapterIndex = 0;
+  state.selectedTools.clear();
+  state.resolving = false;
+  state.finished = false;
+  state.customOpen = false;
+  state.scores = { prestige: 12, survival: 18, clue: 20, allies: 8, alert: 10 };
+  setPanel("game");
+  render();
 }
 
 function mergeEffects(...effects) {
@@ -302,355 +211,200 @@ function mergeEffects(...effects) {
   }, {});
 }
 
-function inferCustomChoice(text) {
-  if (/海图|坐标|旧书|木箱|查|真相/.test(text)) {
-    return {
-      label: "自定义：追线索",
-      effect: { clue: 12, alert: 5 },
-      result: "你的行动被判定为追线索路线。你没有离开短视频主线，而是把旧书、木箱和海上旧债连得更紧。",
-      unlock: "自定义行动归档：线索成长。",
-    };
-  }
-  if (/认账|逼|骂|摔|威胁|当众/.test(text)) {
-    return {
-      label: "自定义：争威望",
-      effect: { prestige: 12, alert: 9, survival: -2 },
-      result: "你的行动被判定为争威望路线。场面被你压出一道裂缝，但大伯也会更快把你当成威胁。",
-      unlock: "自定义行动归档：威望成长。",
-    };
-  }
-  if (/跟踪|观察|忍|等|看|站队/.test(text)) {
-    return {
-      label: "自定义：看人脉",
-      effect: { allies: 10, survival: 6 },
-      result: "你的行动被判定为人脉观察路线。你暂时不赢嘴上那口气，换来的是谁怕谁、谁帮谁的真实站位。",
-      unlock: "自定义行动归档：人脉成长。",
-    };
-  }
-  return {
-    label: "自定义：保命",
-    effect: { survival: 10, clue: 4 },
-    result: "你的行动被判定为生存路线。它不一定最爽，但能让主角带着更多底牌走到下一节点。",
-    unlock: "自定义行动归档：生存成长。",
+function selectedToolEffect() {
+  return [...state.selectedTools]
+    .map((name) => tools.find((tool) => tool.name === name)?.effect || {})
+    .reduce((merged, effect) => mergeEffects(merged, effect), {});
+}
+
+function effectText(effect) {
+  const labels = {
+    prestige: "威望",
+    survival: "生存",
+    clue: "线索",
+    allies: "人脉",
+    alert: "危险",
   };
+  return Object.entries(effect)
+    .filter(([, value]) => value)
+    .map(([key, value]) => `${labels[key] || key}${value > 0 ? "+" : ""}${value}`)
+    .join(" / ");
 }
 
-function addLevelIntro() {
-  const level = currentLevel();
-  state.messages = [
-    { type: "scene", speaker: "gm", text: level.scene, note: "" },
-    { type: "line", speaker: level.line.speaker, text: level.line.text, note: "" },
-    { type: "prompt", speaker: "gm", text: level.prompt, note: "选择会改变成长面板，并自动进入下一节点。" },
-  ];
-}
-
-function resetRun() {
-  clearTimeout(transitionTimer);
-  state.levelIndex = 0;
-  state.messages = [];
-  state.inventoryOpen = false;
-  state.customOpen = false;
-  state.selectedEquipment.clear();
-  state.selectedThisLevel = false;
-  state.finished = false;
-  state.flags = [];
-  state.scores = {
-    prestige: 12,
-    survival: 18,
-    clue: 20,
-    allies: 8,
-    alert: 10,
-  };
-  addLevelIntro();
-}
-
-function renderHeader() {
-  const level = currentLevel();
-  els.sceneIndex.textContent = `互动节点 ${state.levelIndex + 1}/${levels.length}`;
-  els.sceneTitle.textContent = level.title;
-  els.mood.textContent = level.mood;
-}
-
-function renderSceneVisual() {
-  const level = currentLevel();
-  const icons = ["宴", "账", "箱"];
-  els.sceneIcon.textContent = icons[state.levelIndex] || "海";
-  els.sceneCallout.textContent = level.line.text;
-  els.sceneOutcome.textContent = state.flags.at(-1)
-    ? `最近获得：${state.flags.at(-1)}`
-    : "你的路线还没有成型。";
-  els.nodeTrail.replaceChildren(
-    ...levels.map((item, index) => {
-      const node = document.createElement("span");
-      node.textContent = String(index + 1);
-      node.title = item.title;
-      node.className = [
-        index < state.levelIndex ? "is-done" : "",
-        index === state.levelIndex ? "is-current" : "",
-      ].filter(Boolean).join(" ");
-      return node;
-    }),
-  );
-}
-
-function renderGrowth() {
-  stats.forEach((stat) => {
-    const value = clampScore(state.scores[stat.key] || 0);
-    const valueEl = els[`stat${stat.key[0].toUpperCase()}${stat.key.slice(1)}`];
-    const barEl = els[`bar${stat.key[0].toUpperCase()}${stat.key.slice(1)}`];
-    valueEl.textContent = String(value);
-    barEl.style.width = `${value}%`;
+function applyEffect(effect) {
+  Object.entries(effect).forEach(([key, value]) => {
+    state.scores[key] = clamp((state.scores[key] || 0) + value);
   });
 }
 
-function renderStatus() {
-  els.statusName.textContent = player.name;
-  els.statusRole.textContent = player.role;
-  els.statusHp.textContent = String(player.hp);
-  els.statusTrust.textContent = String(Math.max(0, Math.min(100, state.scores.allies + state.scores.prestige - state.scores.alert)));
-  els.statusClue.textContent = state.flags.at(-1) || player.clue;
-  els.equipmentList.replaceChildren(
-    ...player.equipment.map((item) => {
-      const card = document.createElement("label");
-      const checkbox = document.createElement("input");
-      const name = document.createElement("strong");
-      const note = document.createElement("span");
-      card.className = "equipment-option";
-      checkbox.type = "checkbox";
-      checkbox.checked = state.selectedEquipment.has(item.name);
-      checkbox.addEventListener("change", () => {
-        if (checkbox.checked) {
-          state.selectedEquipment.add(item.name);
-        } else {
-          state.selectedEquipment.delete(item.name);
-        }
-      });
-      name.textContent = item.name;
-      note.textContent = item.note;
-      card.append(checkbox, name, note);
-      return card;
-    }),
-  );
+function inferCustom(text) {
+  if (/海图|坐标|旧书|木箱|查|真相/.test(text)) {
+    return {
+      label: "自由行动",
+      text,
+      effect: { clue: 12, alert: 5 },
+      result: "你选择追索线索。旧书、木箱和海上旧债被你连成了一条暗线。",
+    };
+  }
+  if (/认账|逼|摔|威胁|当众/.test(text)) {
+    return {
+      label: "自由行动",
+      text,
+      effect: { prestige: 12, alert: 9, survival: -2 },
+      result: "你选择正面施压。场面被你压出裂缝，大伯也开始真正把你当作威胁。",
+    };
+  }
+  if (/观察|跟踪|忍|等|站队|看/.test(text)) {
+    return {
+      label: "自由行动",
+      text,
+      effect: { allies: 10, survival: 6 },
+      result: "你选择观察人心。谁害怕、谁沉默、谁想帮你，都开始浮出水面。",
+    };
+  }
+  return {
+    label: "自由行动",
+    text,
+    effect: { survival: 10, clue: 4 },
+    result: "你选择保住主动权。它不一定最锋利，但能让你带着更多底牌走下去。",
+  };
 }
 
-function renderToolbelt() {
-  els.toolbeltList.replaceChildren(
-    ...player.equipment.map((item) => {
+function resolveChoice(choice) {
+  if (state.resolving || state.finished) return;
+  const toolsText = [...state.selectedTools].length ? `携带：${[...state.selectedTools].join("、")}` : "";
+  const finalEffect = mergeEffects(choice.effect, selectedToolEffect());
+  applyEffect(finalEffect);
+  state.resolving = true;
+  state.customOpen = false;
+  els.speakerName.textContent = "你的行动";
+  els.storyText.textContent = choice.text;
+  els.resultNote.hidden = false;
+  els.resultNote.textContent = `${choice.result}\n${effectText(finalEffect)}${toolsText ? `\n${toolsText}` : ""}`;
+  renderHud();
+  renderTools();
+  renderChoices();
+  renderAdvance();
+  clearTimeout(advanceTimer);
+  advanceTimer = setTimeout(advanceChapter, 2300);
+}
+
+function advanceChapter() {
+  if (state.chapterIndex >= chapters.length - 1) {
+    state.finished = true;
+    state.resolving = false;
+    els.speakerName.textContent = "本轮结局";
+    els.storyText.textContent = `威望 ${state.scores.prestige} / 线索 ${state.scores.clue} / 危险 ${state.scores.alert}`;
+    els.resultNote.hidden = false;
+    els.resultNote.textContent = "这一版演示到这里停住。下一步可以把不同数值接到不同短剧片段。";
+    render();
+    return;
+  }
+
+  state.chapterIndex += 1;
+  state.selectedTools.clear();
+  state.resolving = false;
+  state.customOpen = false;
+  render();
+}
+
+function renderHud() {
+  const chapter = currentChapter();
+  els.nodeIndex.textContent = `Chapter ${state.chapterIndex + 1}/${chapters.length}`;
+  els.sceneTitle.textContent = chapter.title;
+  els.statPrestige.textContent = `威望 ${state.scores.prestige}`;
+  els.statClue.textContent = `线索 ${state.scores.clue}`;
+  els.statAlert.textContent = `危险 ${state.scores.alert}`;
+}
+
+function renderStory() {
+  if (state.resolving || state.finished) return;
+  const chapter = currentChapter();
+  els.speakerName.textContent = chapter.speaker;
+  els.storyText.textContent = chapter.text;
+  els.resultNote.hidden = false;
+  els.resultNote.textContent = chapter.setup;
+}
+
+function renderTools() {
+  els.toolRow.replaceChildren(
+    ...tools.map((tool) => {
       const button = document.createElement("button");
-      const name = document.createElement("strong");
-      const note = document.createElement("span");
-      const checked = state.selectedEquipment.has(item.name);
       button.type = "button";
-      button.className = checked ? "tool-chip is-selected" : "tool-chip";
-      button.disabled = state.selectedThisLevel || state.finished;
-      name.textContent = item.name;
-      note.textContent = item.note;
-      button.append(name, note);
+      button.className = state.selectedTools.has(tool.name) ? "tool-chip is-selected" : "tool-chip";
+      button.disabled = state.resolving || state.finished;
+      button.textContent = `${tool.name} · ${tool.note}`;
       button.addEventListener("click", () => {
-        if (checked) {
-          state.selectedEquipment.delete(item.name);
+        if (state.selectedTools.has(tool.name)) {
+          state.selectedTools.delete(tool.name);
         } else {
-          state.selectedEquipment.add(item.name);
+          state.selectedTools.add(tool.name);
         }
-        render();
+        renderTools();
       });
       return button;
     }),
   );
 }
 
-function renderInventoryPanel() {
-  els.inventoryPanel.hidden = !state.inventoryOpen;
-  els.toggleInventory.setAttribute("aria-expanded", String(state.inventoryOpen));
-}
-
-function renderCustomComposer() {
-  els.playForm.hidden = !state.customOpen || state.selectedThisLevel || state.finished;
-  if (state.customOpen && !state.selectedThisLevel && !state.finished) {
-    els.input.focus();
-  }
-}
-
-function renderMessages() {
-  els.messages.replaceChildren(
-    ...state.messages.map((message) => {
-      const profile = message.type === "user" ? characters.user : character(message.speaker);
-      const card = document.createElement("article");
-      const eyebrow = document.createElement("span");
-      const body = document.createElement(message.type === "line" ? "blockquote" : "p");
-      card.className = `story-card is-${message.type}`;
-      eyebrow.className = "story-eyebrow";
-      eyebrow.textContent = storyLabel(message, profile);
-      body.textContent = message.type === "line" ? `“${message.text}”` : message.text;
-      card.append(eyebrow, body);
-      if (message.note) {
-        const note = document.createElement("div");
-        note.className = "story-note";
-        note.textContent = message.note;
-        card.append(note);
-      }
-      return card;
-    }),
-  );
-  els.messages.scrollTop = els.messages.scrollHeight;
-}
-
-function storyLabel(message, profile) {
-  if (message.type === "scene") return "情景";
-  if (message.type === "line") return profile.name;
-  if (message.type === "prompt") return "抉择";
-  if (message.type === "user") return "你的行动";
-  if (message.type === "result") return "分支结果";
-  if (message.type === "ending") return "本轮结局";
-  return profile.name;
-}
-
 function renderChoices() {
-  const level = currentLevel();
-  const buttons = level.choices.map((choice, index) => {
+  const chapter = currentChapter();
+  const choiceButtons = state.finished ? [] : chapter.choices.map((choice) => {
     const button = document.createElement("button");
-    const indexMark = document.createElement("i");
     const label = document.createElement("strong");
-    const action = document.createElement("span");
-    const meta = document.createElement("em");
+    const desc = document.createElement("span");
     button.type = "button";
-    button.className = "branch-choice";
-    button.disabled = state.selectedThisLevel || state.finished;
-    indexMark.textContent = `0${index + 1}`;
+    button.className = "choice-card";
+    button.disabled = state.resolving;
     label.textContent = choice.label;
-    action.textContent = choice.action;
-    meta.textContent = effectText(choice.effect);
-    button.append(indexMark, label, action, meta);
-    button.addEventListener("click", () => resolveChoice(choice, choice.action));
-    if (index === 0) button.classList.add("is-primary-choice");
+    desc.textContent = choice.text;
+    button.append(label, desc);
+    button.addEventListener("click", () => resolveChoice(choice));
     return button;
   });
 
-  const customButton = document.createElement("button");
-  const customLabel = document.createElement("strong");
-  const customAction = document.createElement("span");
-  const customMeta = document.createElement("em");
-  customButton.type = "button";
-  customButton.className = "branch-choice is-custom-choice";
-  customButton.disabled = state.selectedThisLevel || state.finished;
-  const customIndex = document.createElement("i");
-  customIndex.textContent = "??";
-  customLabel.textContent = "自由输入";
-  customAction.textContent = "不选预设支线，写下自己的行动。";
-  customMeta.textContent = "系统归类成长方向";
-  customButton.append(customIndex, customLabel, customAction, customMeta);
-  customButton.addEventListener("click", () => {
-    state.customOpen = !state.customOpen;
-    render();
-  });
-  buttons.push(customButton);
+  if (!state.finished) {
+    const custom = document.createElement("button");
+    custom.type = "button";
+    custom.className = "choice-card is-custom";
+    custom.disabled = state.resolving;
+    custom.innerHTML = "<strong>自由行动</strong><span>写下自己的做法</span>";
+    custom.addEventListener("click", () => {
+      state.customOpen = !state.customOpen;
+      renderCustom();
+    });
+    choiceButtons.push(custom);
+  }
 
-  document.querySelector(".quick-row").replaceChildren(...buttons);
-  els.nodeHint.textContent = state.finished
-    ? "本轮文字情景结束"
-    : state.selectedThisLevel
-      ? "正在切换到下一节点..."
-      : "选择后自动进入下一节点";
+  els.choiceGrid.replaceChildren(...choiceButtons);
 }
 
-function renderAdvanceBar() {
-  els.advanceBar.hidden = !state.selectedThisLevel || state.finished;
-  els.advanceBar.classList.toggle("is-running", state.selectedThisLevel && !state.finished);
+function renderCustom() {
+  els.customForm.hidden = !state.customOpen || state.resolving || state.finished;
+  if (!els.customForm.hidden) els.customInput.focus();
+}
+
+function renderAdvance() {
+  els.advanceBar.hidden = !state.resolving || state.finished;
+  els.advanceBar.classList.toggle("is-running", state.resolving && !state.finished);
 }
 
 function render() {
-  renderHeader();
-  renderSceneVisual();
-  renderGrowth();
-  renderStatus();
-  renderToolbelt();
-  renderInventoryPanel();
-  renderMessages();
+  renderHud();
+  renderStory();
+  renderTools();
   renderChoices();
-  renderCustomComposer();
-  renderAdvanceBar();
+  renderCustom();
+  renderAdvance();
 }
 
-async function bootDemo() {
-  setPanel("loading");
-
-  for (const step of loadingSteps) {
-    els.loadingText.textContent = `${step}...`;
-    await sleep(220);
-  }
-
-  resetRun();
-  setPanel("game");
-  render();
-}
-
-function resolveChoice(choice, actionText) {
-  if (state.finished) {
-    showToast("这一轮关卡已经完成。");
-    return;
-  }
-  if (state.selectedThisLevel) {
-    showToast("这一节点已经结算，进入下一节点继续。");
-    return;
-  }
-
-  const tools = [...state.selectedEquipment];
-  const finalEffect = mergeEffects(choice.effect, toolEffect(tools));
-  applyEffect(finalEffect);
-  if (choice.unlock) state.flags.push(choice.unlock.replace(/^获得：|^支线种子：|^成长方向：|^自定义行动归档：/, ""));
-  state.selectedThisLevel = true;
-  state.customOpen = false;
-  state.messages = [
-    { type: "user", speaker: "user", text: actionText, note: tools.length ? `携带：${tools.join("、")}` : "" },
-    { type: "result", speaker: "gm", text: choice.result, note: `成长结算：${effectText(finalEffect)}\n${choice.unlock}` },
-  ];
-  render();
-  scheduleAutoAdvance();
-}
-
-function playerAct(rawText) {
-  const text = rawText.trim();
-  if (!text) {
-    showToast("先输入一句行动。");
-    return;
-  }
-  resolveChoice(inferCustomChoice(text), text);
-  els.input.value = "";
-}
-
-function scheduleAutoAdvance() {
-  clearTimeout(transitionTimer);
-  transitionTimer = setTimeout(advanceNode, 2200);
-}
-
-function advanceNode() {
-  if (state.levelIndex >= levels.length - 1) {
-    const ending = [
-      `当前成长：威望 ${state.scores.prestige} / 生存 ${state.scores.survival} / 线索 ${state.scores.clue} / 人脉 ${state.scores.allies} / 警觉 ${state.scores.alert}`,
-      "这一版 MVP 到这里停住：不同支线已经改变角色成长，后续可以用这些数值解锁不同短剧片段、可招募角色和出海路线。",
-    ].join("\n");
-    state.messages = [{ type: "ending", speaker: "gm", text: ending, note: "文字情景 Demo 完成" }];
-    state.finished = true;
-    render();
-    return;
-  }
-
-  state.levelIndex += 1;
-  state.selectedThisLevel = false;
-  state.customOpen = false;
-  state.selectedEquipment.clear();
-  addLevelIntro();
-  render();
-}
-
-function enterRoleplay() {
+function enterGame() {
   if (els.swipeGate.hidden) return;
-  bootDemo();
+  bootGame();
 }
 
-els.dramaVideo.addEventListener("ended", finishStoryPlayer);
-
-els.swipeGate.addEventListener("click", enterRoleplay);
+els.dramaVideo.addEventListener("ended", finishVideo);
+els.swipeGate.addEventListener("click", enterGame);
 
 els.storyPlayer.addEventListener("touchstart", (event) => {
   touchStartY = event.touches[0]?.clientY || 0;
@@ -658,21 +412,22 @@ els.storyPlayer.addEventListener("touchstart", (event) => {
 
 els.storyPlayer.addEventListener("touchend", (event) => {
   const endY = event.changedTouches[0]?.clientY || touchStartY;
-  if (touchStartY - endY > 42) enterRoleplay();
+  if (touchStartY - endY > 42) enterGame();
 });
 
 els.storyPlayer.addEventListener("wheel", (event) => {
-  if (event.deltaY > 24) enterRoleplay();
+  if (event.deltaY > 24) enterGame();
 });
 
-els.playForm.addEventListener("submit", (event) => {
+els.customForm.addEventListener("submit", (event) => {
   event.preventDefault();
-  playerAct(els.input.value);
+  const text = els.customInput.value.trim();
+  if (!text) {
+    showToast("先写一句行动。");
+    return;
+  }
+  els.customInput.value = "";
+  resolveChoice(inferCustom(text));
 });
 
-els.toggleInventory.addEventListener("click", () => {
-  state.inventoryOpen = !state.inventoryOpen;
-  renderInventoryPanel();
-});
-
-playStoryPreview();
+playVideo();

@@ -3,141 +3,60 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>短剧文字情景游戏 MVP</title>
-    <link rel="stylesheet" href="./styles.css?v=15" />
+    <title>短剧 AI Galgame MVP</title>
+    <link rel="stylesheet" href="./styles.css?v=16" />
   </head>
   <body>
-    <main class="chat-shell">
+    <main class="app-shell">
       <section id="videoPanel" class="video-panel">
-        <div id="storyPlayer" class="story-player" aria-label="短剧播放器，播完后上滑进入跑团模式">
+        <div id="storyPlayer" class="story-player" aria-label="短剧播放器，播完后上滑进入互动剧情">
           <video id="dramaVideo" class="drama-video" src="./assets/drama-demo-web.mp4" playsinline controls preload="metadata"></video>
           <button id="swipeGate" class="swipe-gate" type="button" hidden>
-            <span>上滑进入跑团模式</span>
+            <span>上滑入戏</span>
           </button>
         </div>
       </section>
 
       <section id="loadingPanel" class="loading-panel" hidden>
         <div class="loader"></div>
-        <p id="loadingText">正在接入跑团...</p>
+        <p id="loadingText">正在接入剧情...</p>
       </section>
 
-      <section id="gamePanel" class="game-panel" hidden>
-        <header class="chat-header">
+      <section id="gamePanel" class="galgame-panel" hidden>
+        <div class="top-hud">
           <div>
-            <span id="sceneIndex">互动节点 1</span>
-            <h2 id="sceneTitle">宴席逼问</h2>
+            <span id="nodeIndex">Chapter 1</span>
+            <strong id="sceneTitle">宴席逼问</strong>
           </div>
-          <p id="sceneMood">压迫 / 海上生存</p>
-        </header>
+          <div class="stat-pills" aria-label="角色状态">
+            <span id="statPrestige">威望 12</span>
+            <span id="statClue">线索 20</span>
+            <span id="statAlert">危险 10</span>
+          </div>
+        </div>
 
-        <section class="scene-visual" aria-label="当前情景">
-          <div id="nodeTrail" class="node-trail"></div>
-          <div class="scene-art">
-            <span id="sceneIcon">宴</span>
-            <div>
-              <strong id="sceneCallout">大伯把酒杯按在桌上。</strong>
-              <p id="sceneOutcome">你的路线还没有成型。</p>
-            </div>
-          </div>
+        <div id="toolRow" class="tool-row" aria-label="随身道具"></div>
+
+        <section class="dialogue-area" aria-live="polite">
+          <div class="speaker-tag" id="speakerName">大伯</div>
+          <p id="storyText">你怎么在这片海上活下去？</p>
+          <p id="resultNote" class="result-note" hidden></p>
         </section>
 
-        <section class="growth-panel" aria-label="角色成长">
-          <article class="growth-card">
-            <span>威望</span>
-            <strong id="statPrestige">12</strong>
-            <i><b id="barPrestige"></b></i>
-          </article>
-          <article class="growth-card">
-            <span>生存</span>
-            <strong id="statSurvival">18</strong>
-            <i><b id="barSurvival"></b></i>
-          </article>
-          <article class="growth-card">
-            <span>线索</span>
-            <strong id="statClue">20</strong>
-            <i><b id="barClue"></b></i>
-          </article>
-          <article class="growth-card">
-            <span>人脉</span>
-            <strong id="statAllies">8</strong>
-            <i><b id="barAllies"></b></i>
-          </article>
-          <article class="growth-card is-danger">
-            <span>大伯警觉</span>
-            <strong id="statAlert">10</strong>
-            <i><b id="barAlert"></b></i>
-          </article>
-        </section>
+        <form id="customForm" class="custom-form" hidden>
+          <input id="customInput" type="text" placeholder="写下你的自由行动" />
+          <button type="submit">执行</button>
+        </form>
 
-        <section id="messageList" class="story-stage" aria-live="polite"></section>
+        <div id="choiceGrid" class="choice-grid" aria-label="剧情选项"></div>
 
         <div id="advanceBar" class="advance-bar" hidden>
           <span></span>
-        </div>
-
-        <section id="inventoryPanel" class="inventory-panel" hidden>
-          <div class="status-card" aria-label="玩家状态">
-            <div class="panel-title">
-              <span>状态</span>
-              <strong id="statusName">你</strong>
-            </div>
-            <dl class="status-list">
-              <div>
-                <dt>身份</dt>
-                <dd id="statusRole">被大伯逼问的年轻船民</dd>
-              </div>
-              <div>
-                <dt>体力</dt>
-                <dd><span id="statusHp">72</span>/100</dd>
-              </div>
-              <div>
-                <dt>信任</dt>
-                <dd><span id="statusTrust">18</span>/100</dd>
-              </div>
-              <div>
-                <dt>线索</dt>
-                <dd id="statusClue">旧书海图</dd>
-              </div>
-            </dl>
-          </div>
-          <div class="equipment-card-list">
-            <div class="panel-title">
-              <span>装备</span>
-              <strong>勾选后随行动携带</strong>
-            </div>
-            <div id="equipmentList" class="equipment-list"></div>
-          </div>
-        </section>
-
-        <section class="toolbelt-panel" aria-label="随身道具">
-          <div class="toolbelt-title">
-            <span>随身道具</span>
-            <strong>点选后影响本次结算</strong>
-          </div>
-          <div id="toolbeltList" class="toolbelt-list"></div>
-        </section>
-
-        <div class="decision-controls">
-          <button id="toggleInventoryButton" class="soft-button" type="button" aria-expanded="false">状态</button>
-          <span id="nodeHint">选择后自动进入下一节点</span>
-        </div>
-
-        <form id="playForm" class="custom-composer" hidden>
-          <input id="playerInput" type="text" placeholder="写下你的自由行动，例如：我假装服软，暗中跟踪账房" />
-          <button type="submit">提交自由行动</button>
-        </form>
-
-        <div class="quick-row" aria-label="快捷行动">
-          <button type="button" data-choice="我当众逼大伯承认当年赚了钱对半分的约定。">逼他认账</button>
-          <button type="button" data-choice="我拿出旧书海图，反问他为什么害怕这片海。">亮出海图</button>
-          <button type="button" data-choice="我先忍住，观察宴席上谁站在大伯那边。">观察站队</button>
-          <button type="button" data-choice="我直接摔杯离席，回去查旧木箱里的坐标。">摔杯离席</button>
         </div>
       </section>
     </main>
 
     <div id="toast" class="toast" hidden></div>
-    <script type="module" src="./app.js?v=15"></script>
+    <script type="module" src="./app.js?v=16"></script>
   </body>
 </html>
