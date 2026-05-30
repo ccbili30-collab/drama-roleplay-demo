@@ -6,6 +6,16 @@
 
 ## 启动
 
+线上演示：
+
+```text
+https://ccbili30-collab.github.io/drama-roleplay-demo/
+```
+
+二维码：
+
+![演示二维码](assets/demo-qr.svg)
+
 在仓库根目录运行：
 
 ```powershell
