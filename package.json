@@ -1,0 +1,10 @@
+{
+  "name": "drama-roleplay-demo",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node --check app.js && node --check drama-roleplay-adapter.js",
+    "serve": "python -m http.server 8787 --bind 127.0.0.1"
+  }
+}

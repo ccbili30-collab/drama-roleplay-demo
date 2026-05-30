@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>短剧对话跑团 MVP</title>
+    <link rel="stylesheet" href="./styles.css?v=7" />
+  </head>
+  <body>
+    <main class="chat-shell">
+      <section id="startPanel" class="start-panel">
+        <p class="eyebrow">Douyin Drama to Chat Run</p>
+        <h1>把短剧拆成一场可对话的跑团</h1>
+        <p class="intro">纯对话模式：没有配图舞台，玩家只跟着剧情气泡、角色发言和自己的行动推进。</p>
+        <form id="parseForm" class="start-form">
+          <input id="dramaUrlInput" type="url" placeholder="粘贴短剧 URL，当前 demo 可直接载入样例" />
+          <button type="submit">读取</button>
+          <button id="loadSampleButton" type="button">样例</button>
+        </form>
+      </section>
+
+      <section id="loadingPanel" class="loading-panel" hidden>
+        <div class="loader"></div>
+        <p id="loadingText">正在把短剧拆成对话...</p>
+      </section>
+
+      <section id="gamePanel" class="chat-panel" hidden>
+        <header class="chat-header">
+          <div>
+            <span id="sceneIndex">Scene 1</span>
+            <h2 id="sceneTitle">雨夜城际站</h2>
+          </div>
+          <p id="sceneMood">悬疑 / 初遇</p>
+        </header>
+
+        <section id="messageList" class="message-list" aria-live="polite"></section>
+
+        <section id="inventoryPanel" class="inventory-panel" hidden>
+          <div class="status-card" aria-label="玩家状态">
+            <div class="panel-title">
+              <span>状态</span>
+              <strong id="statusName">林遥</strong>
+            </div>
+            <dl class="status-list">
+              <div>
+                <dt>身份</dt>
+                <dd id="statusRole">替身契约者</dd>
+              </div>
+              <div>
+                <dt>体力</dt>
+                <dd><span id="statusHp">72</span>/100</dd>
+              </div>
+              <div>
+                <dt>信任</dt>
+                <dd><span id="statusTrust">18</span>/100</dd>
+              </div>
+              <div>
+                <dt>线索</dt>
+                <dd id="statusClue">黑伞</dd>
+              </div>
+            </dl>
+          </div>
+          <div class="equipment-card-list">
+            <div class="panel-title">
+              <span>装备</span>
+              <strong>勾选后随行动携带</strong>
+            </div>
+            <div id="equipmentList" class="equipment-list"></div>
+          </div>
+        </section>
+
+        <form id="playForm" class="composer">
+          <button id="toggleInventoryButton" class="soft-button" type="button" aria-expanded="false">背包</button>
+          <input id="playerInput" type="text" placeholder="输入你的行动或台词" />
+          <button type="submit">发送</button>
+          <button id="nextLineButton" type="button">继续</button>
+        </form>
+
+        <div class="quick-row" aria-label="快捷行动">
+          <button type="button" data-choice="我按原剧情继续观察。">按剧情走</button>
+          <button type="button" data-choice="我先问清楚他是谁。">追问</button>
+          <button type="button" data-choice="我记下关键线索，准备偏离原剧情。">偏移</button>
+        </div>
+      </section>
+    </main>
+
+    <div id="toast" class="toast" hidden></div>
+    <script type="module" src="./app.js?v=8"></script>
+  </body>
+</html>
