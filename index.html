@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>短剧 AI Galgame MVP</title>
-    <link rel="stylesheet" href="./styles.css?v=23" />
+    <link rel="stylesheet" href="./styles.css?v=24" />
   </head>
   <body>
     <main class="app-shell">
@@ -38,12 +38,18 @@
 
         <article id="novelPage" class="novel-page" hidden></article>
 
+        <div id="characterStage" class="character-stage" hidden aria-hidden="true">
+          <img id="leftSprite" class="character-sprite sprite-left" alt="" />
+          <img id="rightSprite" class="character-sprite sprite-right" alt="" />
+        </div>
+
         <div id="toolRow" class="tool-row" aria-label="随身道具"></div>
 
         <section class="dialogue-area" aria-live="polite">
           <div class="speaker-tag" id="speakerName">大伯</div>
           <p id="storyText">你怎么在这片海上活下去？</p>
           <p id="resultNote" class="result-note" hidden></p>
+          <button id="dialogueNext" class="dialogue-next" type="button" hidden>继续</button>
         </section>
 
         <form id="customForm" class="custom-form" hidden>
@@ -60,6 +66,6 @@
     </main>
 
     <div id="toast" class="toast" hidden></div>
-    <script type="module" src="./app.js?v=23"></script>
+    <script type="module" src="./app.js?v=24"></script>
   </body>
 </html>

@@ -180,6 +180,7 @@ button:disabled {
 
 .top-hud,
 .novel-page,
+.character-stage,
 .tool-row,
 .dialogue-area,
 .choice-grid,
@@ -350,6 +351,46 @@ button:disabled {
   text-indent: 2em;
 }
 
+.character-stage {
+  position: absolute;
+  inset: 112px 0 145px;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.character-sprite {
+  position: absolute;
+  bottom: -24px;
+  max-height: min(70vh, 650px);
+  width: auto;
+  opacity: 0.58;
+  filter: drop-shadow(0 26px 34px rgba(0, 0, 0, 0.55)) saturate(0.86);
+  transition: opacity 180ms ease, transform 180ms ease, filter 180ms ease;
+}
+
+.character-sprite.is-active {
+  opacity: 1;
+  filter: drop-shadow(0 30px 42px rgba(0, 0, 0, 0.68)) saturate(1.06) brightness(1.04);
+}
+
+.sprite-left {
+  left: -58px;
+  transform: translateX(-8px) scale(0.92);
+}
+
+.sprite-left.is-active {
+  transform: translateX(0) scale(1);
+}
+
+.sprite-right {
+  right: -78px;
+  transform: translateX(8px) scale(0.92);
+}
+
+.sprite-right.is-active {
+  transform: translateX(0) scale(1);
+}
+
 .tool-row {
   order: 5;
   display: flex;
@@ -420,8 +461,26 @@ button:disabled {
   backdrop-filter: blur(5px);
 }
 
+.galgame-panel.is-dialogue-mode .dialogue-area {
+  background:
+    linear-gradient(180deg, rgba(5, 5, 5, 0.48), rgba(4, 5, 5, 0.62));
+}
+
 .dialogue-area.is-narration {
   padding-top: 14px;
+}
+
+.dialogue-next {
+  position: absolute;
+  right: 14px;
+  bottom: 8px;
+  border: 1px solid rgba(221, 179, 106, 0.36);
+  border-radius: 999px;
+  padding: 4px 10px;
+  color: rgba(248, 237, 207, 0.78);
+  background: rgba(7, 7, 6, 0.38);
+  font-size: 11px;
+  font-weight: 900;
 }
 
 .speaker-tag {
@@ -725,6 +784,14 @@ button:disabled {
 
   .dialogue-area {
     padding: 16px 12px 9px;
+  }
+
+  .character-stage {
+    inset: 96px 0 132px;
+  }
+
+  .character-sprite {
+    max-height: min(68vh, 560px);
   }
 
   #storyText {

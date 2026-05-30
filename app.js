@@ -10,6 +10,13 @@ const tools = [
   { name: "木箱钥匙", effect: { survival: 3 }, note: "强化生存" },
 ];
 
+const characters = {
+  hero: { name: "你", side: "right", sprite: "./assets/sprites/hero.png" },
+  uncle: { name: "大伯", side: "left", sprite: "./assets/sprites/uncle.png" },
+  accountant: { name: "账房", side: "left", sprite: "./assets/sprites/accountant.png" },
+  aqi: { name: "阿七", side: "left", sprite: "./assets/sprites/aqi.png" },
+};
+
 const chapters = [
   {
     presentation: "image",
@@ -21,6 +28,11 @@ const chapters = [
     prose: [
       "宴席忽然静下来。你刚提到当年“赚了钱对半分”的旧约，所有人都看向大伯。",
       "灯火压在桌面上，旧书海图、分账旧约和木箱钥匙都像没出鞘的刀。你必须先选一种活下去的方式。",
+    ],
+    dialogues: [
+      { actor: "uncle", text: "你怎么在这片海上活下去？" },
+      { actor: "hero", text: "靠真账，靠旧约，也靠你们当年不敢写进族谱的那条航线。" },
+      { actor: "uncle", text: "年轻人，知道得太快，死得也快。" },
     ],
     choices: [
       {
@@ -55,6 +67,11 @@ const chapters = [
       "账房没有回头。他把袖口攥得很紧，像攥着一张会要命的纸。你跟上去时，码头远处的灯一盏盏暗下去。",
       "他终于停在墙影里，说当年的账不是不能查，只是查了之后，没人能继续装作自己干净。",
     ],
+    dialogues: [
+      { actor: "accountant", text: "别再跟了。你再往前一步，我今晚就走不出这条巷子。" },
+      { actor: "hero", with: "accountant", text: "你藏在袖口里的，不是账，是能救你命的东西。" },
+      { actor: "accountant", text: "救命？那张纸只会让活人想起死人。" },
+    ],
     choices: [
       {
         label: "许诺保护",
@@ -87,6 +104,11 @@ const chapters = [
       "夜潮压着码头，木板缝里全是盐和湿气。那只旧木箱还摆在原处，像一张一直没有合上的嘴。",
       "锁孔边多了新划痕。有人比你更早回来过，也许是为了销毁证据，也许是为了确认你到底拿走了什么。",
       "旧书、账页、船名，在昏灯下慢慢互相咬合。你意识到自己找到的不是藏宝图，而是一条被人从记忆里删掉的航线。",
+    ],
+    dialogues: [
+      { actor: "hero", with: "accountant", text: "锁孔边是新划痕。有人回来过，而且比我更急。" },
+      { actor: "accountant", text: "他们不是来找钱，是来确认你拿走了什么。" },
+      { actor: "hero", with: "accountant", text: "旧书、账页、船名……终于对上了。" },
     ],
     choices: [
       {
@@ -121,6 +143,11 @@ const chapters = [
       "你听见远处有人喊你的名字，但声音很快被浪吞掉。大伯的人已经动了，码头上的每一盏灯都像一只睁开的眼。",
       "阿七说船可以借你，但这趟海不是去找钱。那艘旧船上留下的，是死人没来得及说完的话。",
     ],
+    dialogues: [
+      { actor: "aqi", text: "船可以借你，但这趟海不是去找钱。" },
+      { actor: "hero", with: "aqi", text: "那是去找什么？" },
+      { actor: "aqi", text: "找死人留下的话，也找活人不敢认的债。" },
+    ],
     choices: [
       {
         label: "立刻出海",
@@ -154,6 +181,11 @@ const chapters = [
       "你终于看见短视频结尾之后真正的入口。大伯要你在这片海上活下去，而答案就在那艘不该存在的旧船里。",
       "海风把灯火吹得忽明忽暗。现在每一种选择，都会决定你带回证据，还是先保住命。",
     ],
+    dialogues: [
+      { actor: "aqi", text: "看见了吗？沉银号。族里说它早就没了。" },
+      { actor: "hero", with: "aqi", text: "船还在，账就还在。有人只是把它藏进海雾里。" },
+      { actor: "aqi", text: "那你现在要登船，还是先想好怎么活着回来？" },
+    ],
     choices: [
       {
         label: "登船搜证",
@@ -183,6 +215,7 @@ const state = {
   resolving: false,
   finished: false,
   customOpen: false,
+  dialogueStep: 0,
   scores: {
     prestige: 12,
     survival: 18,
@@ -209,11 +242,15 @@ const els = {
   statAlert: $("#statAlert"),
   bgmToggle: $("#bgmToggle"),
   novelPage: $("#novelPage"),
+  characterStage: $("#characterStage"),
+  leftSprite: $("#leftSprite"),
+  rightSprite: $("#rightSprite"),
   toolRow: $("#toolRow"),
   dialogueArea: $(".dialogue-area"),
   speakerName: $("#speakerName"),
   storyText: $("#storyText"),
   resultNote: $("#resultNote"),
+  dialogueNext: $("#dialogueNext"),
   choiceGrid: $("#choiceGrid"),
   customForm: $("#customForm"),
   customInput: $("#customInput"),
@@ -238,6 +275,11 @@ function sleep(ms) {
 
 function currentChapter() {
   return chapters[state.chapterIndex] || chapters.at(-1);
+}
+
+function activeDialogue() {
+  const chapter = currentChapter();
+  return !state.resolving && !state.finished ? chapter.dialogues?.[state.dialogueStep] : null;
 }
 
 function clamp(value) {
@@ -347,6 +389,7 @@ async function bootGame() {
   state.resolving = false;
   state.finished = false;
   state.customOpen = false;
+  state.dialogueStep = 0;
   state.scores = { prestige: 12, survival: 18, clue: 20, allies: 8, alert: 10 };
   setPanel("game");
   render();
@@ -454,6 +497,7 @@ function advanceChapter() {
   state.selectedTools.clear();
   state.resolving = false;
   state.customOpen = false;
+  state.dialogueStep = 0;
   render();
 }
 
@@ -493,6 +537,15 @@ function renderNovelPage() {
 function renderStory() {
   if (state.resolving || state.finished) return;
   const chapter = currentChapter();
+  const dialogue = activeDialogue();
+  if (dialogue) {
+    const character = characters[dialogue.actor];
+    setSpeaker(character?.name || dialogue.actor);
+    els.storyText.textContent = dialogue.text;
+    els.resultNote.hidden = false;
+    els.resultNote.textContent = "点击继续推进对话。";
+    return;
+  }
   setSpeaker(chapter.speaker);
   els.storyText.textContent = chapter.text;
   els.resultNote.hidden = false;
@@ -500,6 +553,8 @@ function renderStory() {
 }
 
 function renderTools() {
+  els.toolRow.hidden = Boolean(activeDialogue());
+  if (els.toolRow.hidden) return;
   els.toolRow.replaceChildren(
     ...tools.map((tool) => {
       const button = document.createElement("button");
@@ -521,6 +576,12 @@ function renderTools() {
 }
 
 function renderChoices() {
+  if (activeDialogue()) {
+    els.choiceGrid.replaceChildren();
+    els.choiceGrid.hidden = true;
+    return;
+  }
+  els.choiceGrid.hidden = false;
   const chapter = currentChapter();
   const choiceButtons = state.finished ? [] : chapter.choices.map((choice) => {
     const button = document.createElement("button");
@@ -557,6 +618,29 @@ function renderCustom() {
   if (!els.customForm.hidden) els.customInput.focus();
 }
 
+function renderCharacters() {
+  const dialogue = activeDialogue();
+  els.game.classList.toggle("is-dialogue-mode", Boolean(dialogue));
+  els.dialogueNext.hidden = !dialogue;
+  els.characterStage.hidden = !dialogue;
+  if (!dialogue) {
+    els.leftSprite.removeAttribute("src");
+    els.rightSprite.removeAttribute("src");
+    return;
+  }
+
+  const actor = characters[dialogue.actor];
+  const otherKey = actor?.side === "right" ? dialogue.with || "uncle" : "hero";
+  const other = characters[otherKey];
+  const left = actor?.side === "left" ? actor : other?.side === "left" ? other : null;
+  const right = actor?.side === "right" ? actor : other?.side === "right" ? other : characters.hero;
+
+  els.leftSprite.src = left?.sprite || "";
+  els.rightSprite.src = right?.sprite || "";
+  els.leftSprite.classList.toggle("is-active", actor?.side === "left");
+  els.rightSprite.classList.toggle("is-active", actor?.side === "right");
+}
+
 function renderAdvance() {
   els.advanceBar.hidden = !state.resolving || state.finished;
   els.advanceBar.classList.toggle("is-running", state.resolving && !state.finished);
@@ -567,10 +651,17 @@ function render() {
   renderNovelPage();
   renderHud();
   renderStory();
+  renderCharacters();
   renderTools();
   renderChoices();
   renderCustom();
   renderAdvance();
+}
+
+function advanceDialogue() {
+  if (!activeDialogue()) return;
+  state.dialogueStep += 1;
+  render();
 }
 
 function enterGame() {
@@ -581,6 +672,11 @@ function enterGame() {
 els.dramaVideo.addEventListener("ended", finishVideo);
 els.swipeGate.addEventListener("click", enterGame);
 els.bgmToggle.addEventListener("click", toggleBgm);
+els.dialogueNext.addEventListener("click", advanceDialogue);
+els.dialogueArea.addEventListener("click", (event) => {
+  if (event.target === els.dialogueNext) return;
+  advanceDialogue();
+});
 
 els.storyPlayer.addEventListener("touchstart", (event) => {
   touchStartY = event.touches[0]?.clientY || 0;
