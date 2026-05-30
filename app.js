@@ -117,6 +117,7 @@ const $ = (selector) => document.querySelector(selector);
 const els = {
   video: $("#videoPanel"),
   storyPlayer: $("#storyPlayer"),
+  dramaVideo: $("#dramaVideo"),
   videoCaption: $("#videoCaption"),
   videoProgress: $("#videoProgress"),
   replayVideo: $("#replayVideoButton"),
@@ -171,6 +172,8 @@ function setPanel(panel) {
 
 function resetStoryPlayer() {
   clearInterval(videoTimer);
+  els.dramaVideo.pause();
+  els.dramaVideo.currentTime = 0;
   els.storyPlayer.classList.remove("is-ended");
   els.swipeGate.hidden = true;
   els.videoProgress.style.width = "0%";
@@ -188,16 +191,12 @@ function finishStoryPlayer() {
 function playStoryPreview() {
   resetStoryPlayer();
   setPanel("video");
-  let tick = 0;
-  const totalTicks = 64;
-  videoTimer = setInterval(() => {
-    tick += 1;
-    const progress = Math.min(100, Math.round((tick / totalTicks) * 100));
-    const beatIndex = Math.min(videoBeats.length - 1, Math.floor((progress / 100) * videoBeats.length));
-    els.videoProgress.style.width = `${progress}%`;
-    els.videoCaption.textContent = videoBeats[beatIndex];
-    if (tick >= totalTicks) finishStoryPlayer();
-  }, 120);
+  const playPromise = els.dramaVideo.play();
+  if (playPromise?.catch) {
+    playPromise.catch(() => {
+      showToast("浏览器阻止了自动播放，请点视频开始。");
+    });
+  }
 }
 
 function openPayChannel() {
@@ -409,6 +408,18 @@ function playerAct(rawText) {
 }
 
 els.replayVideo.addEventListener("click", playStoryPreview);
+
+els.dramaVideo.addEventListener("timeupdate", () => {
+  const duration = Number.isFinite(els.dramaVideo.duration) && els.dramaVideo.duration > 0
+    ? els.dramaVideo.duration
+    : 138.9;
+  const progress = Math.min(100, Math.round((els.dramaVideo.currentTime / duration) * 100));
+  const beatIndex = Math.min(videoBeats.length - 1, Math.floor((progress / 100) * videoBeats.length));
+  els.videoProgress.style.width = `${progress}%`;
+  els.videoCaption.textContent = videoBeats[beatIndex];
+});
+
+els.dramaVideo.addEventListener("ended", finishStoryPlayer);
 
 els.swipeGate.addEventListener("click", openPayChannel);
 
