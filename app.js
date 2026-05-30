@@ -13,6 +13,7 @@ const tools = [
 const chapters = [
   {
     presentation: "image",
+    backdrop: "./assets/galgame-seaside-banquet.png",
     title: "宴席逼问",
     speaker: "大伯",
     text: "你怎么在这片海上活下去？",
@@ -136,6 +137,7 @@ const chapters = [
   },
   {
     presentation: "image",
+    backdrop: "./assets/black-sea-old-ship.png",
     title: "黑海旧船",
     speaker: "旁白",
     text: "雾散开时，旧船的影子像一座沉在海面上的祠堂。",
@@ -394,6 +396,11 @@ function renderPresentation() {
   const chapter = currentChapter();
   els.game.classList.toggle("is-image-act", chapter.presentation === "image");
   els.game.classList.toggle("is-novel-act", chapter.presentation === "novel");
+  if (chapter.backdrop) {
+    els.game.style.setProperty("--scene-bg", `url("${chapter.backdrop}")`);
+  } else {
+    els.game.style.removeProperty("--scene-bg");
+  }
 }
 
 function renderNovelPage() {
