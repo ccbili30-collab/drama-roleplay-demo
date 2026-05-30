@@ -334,9 +334,9 @@ function inferCustomChoice(text) {
 
 function addLevelIntro() {
   const level = currentLevel();
-  pushMessage("narrator", "gm", level.scene);
-  pushMessage("narrator", level.line.speaker, level.line.text);
-  pushMessage("narrator", "gm", level.prompt, "选择会改变成长面板，并解锁下一节点的不同优势。");
+  pushMessage("scene", "gm", level.scene);
+  pushMessage("line", level.line.speaker, level.line.text);
+  pushMessage("prompt", "gm", level.prompt, "选择会改变成长面板，并解锁下一节点的不同优势。");
 }
 
 function resetRun() {
@@ -421,35 +421,34 @@ function renderMessages() {
   els.messages.replaceChildren(
     ...state.messages.map((message) => {
       const profile = message.type === "user" ? characters.user : character(message.speaker);
-      const row = document.createElement("article");
-      const avatar = document.createElement("span");
-      const wrap = document.createElement("div");
-      const speaker = document.createElement("span");
-      const bubble = document.createElement("div");
-      row.className = `message is-${message.type}`;
-      avatar.className = "avatar";
-      avatar.textContent = profile.short;
-      wrap.className = "bubble-wrap";
-      speaker.className = "speaker";
-      speaker.textContent = profile.name;
-      bubble.className = "bubble";
-      bubble.textContent = message.text;
-      wrap.append(speaker, bubble);
+      const card = document.createElement("article");
+      const eyebrow = document.createElement("span");
+      const body = document.createElement(message.type === "line" ? "blockquote" : "p");
+      card.className = `story-card is-${message.type}`;
+      eyebrow.className = "story-eyebrow";
+      eyebrow.textContent = storyLabel(message, profile);
+      body.textContent = message.type === "line" ? `“${message.text}”` : message.text;
+      card.append(eyebrow, body);
       if (message.note) {
         const note = document.createElement("div");
-        note.className = "branch-note";
+        note.className = "story-note";
         note.textContent = message.note;
-        wrap.append(note);
+        card.append(note);
       }
-      if (message.type === "user") {
-        row.append(wrap, avatar);
-      } else {
-        row.append(avatar, wrap);
-      }
-      return row;
+      return card;
     }),
   );
   els.messages.scrollTop = els.messages.scrollHeight;
+}
+
+function storyLabel(message, profile) {
+  if (message.type === "scene") return "情景";
+  if (message.type === "line") return profile.name;
+  if (message.type === "prompt") return "抉择";
+  if (message.type === "user") return "你的行动";
+  if (message.type === "result") return "分支结果";
+  if (message.type === "ending") return "本轮结局";
+  return profile.name;
 }
 
 function renderChoices() {
@@ -533,7 +532,7 @@ function resolveChoice(choice, actionText) {
   state.selectedThisLevel = true;
   state.customOpen = false;
   pushMessage("user", "user", actionText, tools.length ? `携带：${tools.join("、")}` : "");
-  pushMessage("narrator", "gm", choice.result, `成长结算：${effectText(finalEffect)}\n${choice.unlock}`);
+  pushMessage("result", "gm", choice.result, `成长结算：${effectText(finalEffect)}\n${choice.unlock}`);
   render();
 }
 
@@ -549,7 +548,7 @@ function playerAct(rawText) {
 
 function nextLevel() {
   if (!state.selectedThisLevel) {
-    showToast("先完成这一关的选择。");
+    showToast("先完成这一节点的选择。");
     return;
   }
 
@@ -558,7 +557,7 @@ function nextLevel() {
       `当前成长：威望 ${state.scores.prestige} / 生存 ${state.scores.survival} / 线索 ${state.scores.clue} / 人脉 ${state.scores.allies} / 警觉 ${state.scores.alert}`,
       "这一版 MVP 到这里停住：不同支线已经改变角色成长，后续可以用这些数值解锁不同短剧片段、可招募角色和出海路线。",
     ].join("\n");
-    pushMessage("narrator", "gm", ending, "关卡 Demo 完成");
+    pushMessage("ending", "gm", ending, "文字情景 Demo 完成");
     state.finished = true;
     render();
     return;

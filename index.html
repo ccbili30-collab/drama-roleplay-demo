@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>短剧互动视频 MVP</title>
-    <link rel="stylesheet" href="./styles.css?v=13" />
+    <title>短剧文字情景游戏 MVP</title>
+    <link rel="stylesheet" href="./styles.css?v=14" />
   </head>
   <body>
     <main class="chat-shell">
@@ -22,7 +22,7 @@
         <p id="loadingText">正在接入跑团...</p>
       </section>
 
-      <section id="gamePanel" class="chat-panel" hidden>
+      <section id="gamePanel" class="game-panel" hidden>
         <header class="chat-header">
           <div>
             <span id="sceneIndex">互动节点 1</span>
@@ -59,7 +59,7 @@
           </article>
         </section>
 
-        <section id="messageList" class="message-list" aria-live="polite"></section>
+        <section id="messageList" class="story-stage" aria-live="polite"></section>
 
         <section id="inventoryPanel" class="inventory-panel" hidden>
           <div class="status-card" aria-label="玩家状态">
@@ -115,6 +115,6 @@
     </main>
 
     <div id="toast" class="toast" hidden></div>
-    <script type="module" src="./app.js?v=13"></script>
+    <script type="module" src="./app.js?v=14"></script>
   </body>
 </html>
