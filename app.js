@@ -40,7 +40,8 @@ const chapters = [
     ],
   },
   {
-    presentation: "novel",
+    presentation: "image",
+    backdrop: "./assets/accountant-alley.png",
     title: "账房袖口",
     speaker: "账房",
     text: "当年的账不是不能查，只是查了就没人能装不知道。",
@@ -72,7 +73,8 @@ const chapters = [
     ],
   },
   {
-    presentation: "novel",
+    presentation: "image",
+    backdrop: "./assets/dockside-chest.png",
     title: "夜查木箱",
     speaker: "旁白",
     text: "旧书里的坐标、半截账页和船名开始互相对上。",
@@ -104,7 +106,8 @@ const chapters = [
     ],
   },
   {
-    presentation: "novel",
+    presentation: "image",
+    backdrop: "./assets/midnight-dock.png",
     title: "码头潮声",
     speaker: "阿七",
     text: "船可以借你，但这趟海不是去找钱，是去找死人留下的话。",
@@ -195,6 +198,7 @@ const els = {
   statPrestige: $("#statPrestige"),
   statClue: $("#statClue"),
   statAlert: $("#statAlert"),
+  bgmToggle: $("#bgmToggle"),
   novelPage: $("#novelPage"),
   toolRow: $("#toolRow"),
   speakerName: $("#speakerName"),
@@ -210,6 +214,13 @@ const els = {
 let touchStartY = 0;
 let toastTimer = 0;
 let advanceTimer = 0;
+let bgmTimer = 0;
+
+const bgm = {
+  context: null,
+  master: null,
+  playing: false,
+};
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -230,6 +241,60 @@ function showToast(text) {
   toastTimer = setTimeout(() => {
     els.toast.hidden = true;
   }, 1600);
+}
+
+function ensureBgmGraph() {
+  if (bgm.context) return;
+  const AudioContext = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContext) {
+    showToast("当前浏览器不支持背景音乐。");
+    return;
+  }
+  bgm.context = new AudioContext();
+  bgm.master = bgm.context.createGain();
+  bgm.master.gain.value = 0.045;
+  bgm.master.connect(bgm.context.destination);
+}
+
+function playTone(frequency, start, duration, type = "triangle", gain = 0.16) {
+  const oscillator = bgm.context.createOscillator();
+  const envelope = bgm.context.createGain();
+  oscillator.type = type;
+  oscillator.frequency.setValueAtTime(frequency, start);
+  envelope.gain.setValueAtTime(0.0001, start);
+  envelope.gain.exponentialRampToValueAtTime(gain, start + 0.025);
+  envelope.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+  oscillator.connect(envelope).connect(bgm.master);
+  oscillator.start(start);
+  oscillator.stop(start + duration + 0.04);
+}
+
+function scheduleSuspenseLoop() {
+  if (!bgm.playing || !bgm.context) return;
+  const start = bgm.context.currentTime + 0.04;
+  const motif = [82.41, 92.5, 98, 110, 123.47, 110, 98, 92.5];
+  motif.forEach((frequency, index) => {
+    playTone(frequency, start + index * 0.36, 0.28, "triangle", 0.2);
+    playTone(frequency / 2, start + index * 0.36, 0.34, "sine", 0.11);
+  });
+  [65.41, 61.74, 58.27].forEach((frequency, index) => {
+    playTone(frequency, start + index * 1.08, 1.05, "sawtooth", 0.035);
+  });
+  bgmTimer = window.setTimeout(scheduleSuspenseLoop, 2880);
+}
+
+async function toggleBgm() {
+  ensureBgmGraph();
+  if (!bgm.context) return;
+  if (bgm.context.state === "suspended") await bgm.context.resume();
+  bgm.playing = !bgm.playing;
+  els.bgmToggle.setAttribute("aria-pressed", String(bgm.playing));
+  els.bgmToggle.classList.toggle("is-playing", bgm.playing);
+  els.bgmToggle.textContent = bgm.playing ? "BGM开" : "悬疑BGM";
+  window.clearTimeout(bgmTimer);
+  if (bgm.playing) {
+    scheduleSuspenseLoop();
+  }
 }
 
 function setPanel(panel) {
@@ -506,6 +571,7 @@ function enterGame() {
 
 els.dramaVideo.addEventListener("ended", finishVideo);
 els.swipeGate.addEventListener("click", enterGame);
+els.bgmToggle.addEventListener("click", toggleBgm);
 
 els.storyPlayer.addEventListener("touchstart", (event) => {
   touchStartY = event.touches[0]?.clientY || 0;
