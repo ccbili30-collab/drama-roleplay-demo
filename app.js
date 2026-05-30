@@ -12,6 +12,13 @@ const loadingSteps = [
   "生成对话跑团",
 ];
 
+const videoBeats = [
+  "破旧木箱被打开，旧书上标着未知海域和坐标。",
+  "男主发现自己跟大伯干了多年，却被卷进一场分账旧债。",
+  "宴席上，老者一句“赚了钱对半分”把所有矛盾点燃。",
+  "故事停在质问的一刻：你要怎么在这片海上活下去？",
+];
+
 const drama = {
   title: "雨夜替身契约",
   player: {
@@ -108,11 +115,17 @@ const state = {
 const $ = (selector) => document.querySelector(selector);
 
 const els = {
-  start: $("#startPanel"),
+  video: $("#videoPanel"),
+  storyPlayer: $("#storyPlayer"),
+  videoCaption: $("#videoCaption"),
+  videoProgress: $("#videoProgress"),
+  replayVideo: $("#replayVideoButton"),
+  swipeGate: $("#swipeGate"),
+  pay: $("#payPanel"),
+  payButton: $("#payButton"),
+  backToVideo: $("#backToVideoButton"),
   loading: $("#loadingPanel"),
   game: $("#gamePanel"),
-  parseForm: $("#parseForm"),
-  loadSample: $("#loadSampleButton"),
   loadingText: $("#loadingText"),
   sceneIndex: $("#sceneIndex"),
   sceneTitle: $("#sceneTitle"),
@@ -133,6 +146,8 @@ const els = {
 };
 
 let toastTimer = 0;
+let videoTimer = 0;
+let touchStartY = 0;
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -145,6 +160,49 @@ function showToast(text) {
   toastTimer = setTimeout(() => {
     els.toast.hidden = true;
   }, 1800);
+}
+
+function setPanel(panel) {
+  els.video.hidden = panel !== "video";
+  els.pay.hidden = panel !== "pay";
+  els.loading.hidden = panel !== "loading";
+  els.game.hidden = panel !== "game";
+}
+
+function resetStoryPlayer() {
+  clearInterval(videoTimer);
+  els.storyPlayer.classList.remove("is-ended");
+  els.swipeGate.hidden = true;
+  els.videoProgress.style.width = "0%";
+  els.videoCaption.textContent = videoBeats[0];
+}
+
+function finishStoryPlayer() {
+  clearInterval(videoTimer);
+  els.videoProgress.style.width = "100%";
+  els.videoCaption.textContent = videoBeats.at(-1);
+  els.storyPlayer.classList.add("is-ended");
+  els.swipeGate.hidden = false;
+}
+
+function playStoryPreview() {
+  resetStoryPlayer();
+  setPanel("video");
+  let tick = 0;
+  const totalTicks = 64;
+  videoTimer = setInterval(() => {
+    tick += 1;
+    const progress = Math.min(100, Math.round((tick / totalTicks) * 100));
+    const beatIndex = Math.min(videoBeats.length - 1, Math.floor((progress / 100) * videoBeats.length));
+    els.videoProgress.style.width = `${progress}%`;
+    els.videoCaption.textContent = videoBeats[beatIndex];
+    if (tick >= totalTicks) finishStoryPlayer();
+  }, 120);
+}
+
+function openPayChannel() {
+  if (els.swipeGate.hidden) return;
+  setPanel("pay");
 }
 
 function character(id) {
@@ -263,9 +321,7 @@ function render() {
 }
 
 async function bootDemo() {
-  els.start.hidden = true;
-  els.game.hidden = true;
-  els.loading.hidden = false;
+  setPanel("loading");
 
   for (const step of loadingSteps) {
     els.loadingText.textContent = `${step}...`;
@@ -285,8 +341,7 @@ async function bootDemo() {
     note: `sourceNovel：${state.snapshot.sourceNovel?.title || drama.title}`,
   });
   appendSourceChunk();
-  els.loading.hidden = true;
-  els.game.hidden = false;
+  setPanel("game");
   render();
 }
 
@@ -353,12 +408,26 @@ function playerAct(rawText) {
   render();
 }
 
-els.parseForm.addEventListener("submit", (event) => {
-  event.preventDefault();
-  bootDemo();
+els.replayVideo.addEventListener("click", playStoryPreview);
+
+els.swipeGate.addEventListener("click", openPayChannel);
+
+els.storyPlayer.addEventListener("touchstart", (event) => {
+  touchStartY = event.touches[0]?.clientY || 0;
 });
 
-els.loadSample.addEventListener("click", bootDemo);
+els.storyPlayer.addEventListener("touchend", (event) => {
+  const endY = event.changedTouches[0]?.clientY || touchStartY;
+  if (touchStartY - endY > 42) openPayChannel();
+});
+
+els.storyPlayer.addEventListener("wheel", (event) => {
+  if (event.deltaY > 24) openPayChannel();
+});
+
+els.payButton.addEventListener("click", bootDemo);
+
+els.backToVideo.addEventListener("click", playStoryPreview);
 
 els.playForm.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -378,3 +447,5 @@ document.querySelectorAll("[data-choice]").forEach((button) => {
     els.input.focus();
   });
 });
+
+playStoryPreview();

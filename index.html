@@ -4,19 +4,43 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>短剧对话跑团 MVP</title>
-    <link rel="stylesheet" href="./styles.css?v=7" />
+    <link rel="stylesheet" href="./styles.css?v=9" />
   </head>
   <body>
     <main class="chat-shell">
-      <section id="startPanel" class="start-panel">
-        <p class="eyebrow">Douyin Drama to Chat Run</p>
-        <h1>把短剧拆成一场可对话的跑团</h1>
-        <p class="intro">纯对话模式：没有配图舞台，玩家只跟着剧情气泡、角色发言和自己的行动推进。</p>
-        <form id="parseForm" class="start-form">
-          <input id="dramaUrlInput" type="url" placeholder="粘贴短剧 URL，当前 demo 可直接载入样例" />
-          <button type="submit">读取</button>
-          <button id="loadSampleButton" type="button">样例</button>
-        </form>
+      <section id="videoPanel" class="video-panel">
+        <div id="storyPlayer" class="story-player" aria-label="短剧播放器">
+          <div class="video-topbar">
+            <span>短剧样片</span>
+            <strong>02:19</strong>
+          </div>
+          <div class="faux-frame">
+            <div class="faux-book"></div>
+            <div class="faux-hero"></div>
+            <div class="faux-banquet"></div>
+          </div>
+          <div class="video-copy">
+            <p class="eyebrow">Drama Gate</p>
+            <h1>看完这一幕，接管主角命运</h1>
+            <p id="videoCaption">破旧木箱被打开，旧书上标着未知海域和坐标。</p>
+          </div>
+          <div class="video-progress"><span id="videoProgress"></span></div>
+          <button id="replayVideoButton" class="replay-button" type="button">重播</button>
+          <button id="swipeGate" class="swipe-gate" type="button" hidden>
+            <span>上滑进入跑团模式</span>
+            <strong>解锁付费通道</strong>
+          </button>
+        </div>
+      </section>
+
+      <section id="payPanel" class="pay-panel" hidden>
+        <div class="pay-card">
+          <p class="eyebrow">Paid Channel</p>
+          <h2>解锁：从视频结尾入戏</h2>
+          <p>演示版会模拟支付成功，然后把刚才的短剧剧情转换成跑团 sourceNovel。</p>
+          <button id="payButton" type="button">模拟支付并进入</button>
+          <button id="backToVideoButton" type="button">返回短剧</button>
+        </div>
       </section>
 
       <section id="loadingPanel" class="loading-panel" hidden>
@@ -85,6 +109,6 @@
     </main>
 
     <div id="toast" class="toast" hidden></div>
-    <script type="module" src="./app.js?v=8"></script>
+    <script type="module" src="./app.js?v=9"></script>
   </body>
 </html>
