@@ -310,6 +310,9 @@ input:focus {
   border: 1px solid var(--line);
   border-radius: 28px;
   padding: 18px;
+  display: grid;
+  align-content: center;
+  gap: 12px;
   background:
     linear-gradient(180deg, rgba(255, 252, 246, 0.94), rgba(255, 247, 236, 0.88)),
     repeating-linear-gradient(0deg, transparent 0 35px, rgba(83, 65, 47, 0.04) 35px 36px);
@@ -318,7 +321,7 @@ input:focus {
 
 .story-card {
   position: relative;
-  margin: 0 0 12px;
+  margin: 0;
   border: 1px solid rgba(83, 65, 47, 0.11);
   border-radius: 22px;
   padding: 14px 16px;
@@ -491,12 +494,11 @@ input:focus {
   box-shadow: 0 18px 50px var(--shadow);
 }
 
-.decision-controls #nextLineButton {
+.decision-controls #nodeHint {
+  align-self: center;
   justify-self: end;
-  min-width: 132px;
-  border: 0;
-  color: #fffaf0;
-  background: var(--green);
+  color: var(--muted);
+  font-size: 13px;
   font-weight: 900;
 }
 

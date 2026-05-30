@@ -190,7 +190,7 @@ const els = {
   equipmentList: $("#equipmentList"),
   playForm: $("#playForm"),
   input: $("#playerInput"),
-  next: $("#nextLineButton"),
+  nodeHint: $("#nodeHint"),
   toast: $("#toast"),
   statPrestige: $("#statPrestige"),
   statSurvival: $("#statSurvival"),
@@ -206,6 +206,7 @@ const els = {
 
 let toastTimer = 0;
 let touchStartY = 0;
+let transitionTimer = 0;
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -259,10 +260,6 @@ function currentLevel() {
 
 function character(id) {
   return characters[id] || characters.gm;
-}
-
-function pushMessage(type, speaker, text, note = "") {
-  state.messages.push({ type, speaker, text, note });
 }
 
 function effectText(effect) {
@@ -334,12 +331,15 @@ function inferCustomChoice(text) {
 
 function addLevelIntro() {
   const level = currentLevel();
-  pushMessage("scene", "gm", level.scene);
-  pushMessage("line", level.line.speaker, level.line.text);
-  pushMessage("prompt", "gm", level.prompt, "选择会改变成长面板，并解锁下一节点的不同优势。");
+  state.messages = [
+    { type: "scene", speaker: "gm", text: level.scene, note: "" },
+    { type: "line", speaker: level.line.speaker, text: level.line.text, note: "" },
+    { type: "prompt", speaker: "gm", text: level.prompt, note: "选择会改变成长面板，并自动进入下一节点。" },
+  ];
 }
 
 function resetRun() {
+  clearTimeout(transitionTimer);
   state.levelIndex = 0;
   state.messages = [];
   state.inventoryOpen = false;
@@ -488,8 +488,11 @@ function renderChoices() {
   buttons.push(customButton);
 
   document.querySelector(".quick-row").replaceChildren(...buttons);
-  els.next.disabled = !state.selectedThisLevel || state.finished;
-  els.next.textContent = state.levelIndex >= levels.length - 1 ? "查看结局" : "下一节点";
+  els.nodeHint.textContent = state.finished
+    ? "本轮文字情景结束"
+    : state.selectedThisLevel
+      ? "正在切换到下一节点..."
+      : "选择后自动进入下一节点";
 }
 
 function render() {
@@ -531,9 +534,12 @@ function resolveChoice(choice, actionText) {
   if (choice.unlock) state.flags.push(choice.unlock.replace(/^获得：|^支线种子：|^成长方向：|^自定义行动归档：/, ""));
   state.selectedThisLevel = true;
   state.customOpen = false;
-  pushMessage("user", "user", actionText, tools.length ? `携带：${tools.join("、")}` : "");
-  pushMessage("result", "gm", choice.result, `成长结算：${effectText(finalEffect)}\n${choice.unlock}`);
+  state.messages = [
+    { type: "user", speaker: "user", text: actionText, note: tools.length ? `携带：${tools.join("、")}` : "" },
+    { type: "result", speaker: "gm", text: choice.result, note: `成长结算：${effectText(finalEffect)}\n${choice.unlock}` },
+  ];
   render();
+  scheduleAutoAdvance();
 }
 
 function playerAct(rawText) {
@@ -546,18 +552,18 @@ function playerAct(rawText) {
   els.input.value = "";
 }
 
-function nextLevel() {
-  if (!state.selectedThisLevel) {
-    showToast("先完成这一节点的选择。");
-    return;
-  }
+function scheduleAutoAdvance() {
+  clearTimeout(transitionTimer);
+  transitionTimer = setTimeout(advanceNode, state.levelIndex >= levels.length - 1 ? 1200 : 2200);
+}
 
+function advanceNode() {
   if (state.levelIndex >= levels.length - 1) {
     const ending = [
       `当前成长：威望 ${state.scores.prestige} / 生存 ${state.scores.survival} / 线索 ${state.scores.clue} / 人脉 ${state.scores.allies} / 警觉 ${state.scores.alert}`,
       "这一版 MVP 到这里停住：不同支线已经改变角色成长，后续可以用这些数值解锁不同短剧片段、可招募角色和出海路线。",
     ].join("\n");
-    pushMessage("ending", "gm", ending, "文字情景 Demo 完成");
+    state.messages = [{ type: "ending", speaker: "gm", text: ending, note: "文字情景 Demo 完成" }];
     state.finished = true;
     render();
     return;
@@ -602,7 +608,5 @@ els.toggleInventory.addEventListener("click", () => {
   state.inventoryOpen = !state.inventoryOpen;
   renderInventoryPanel();
 });
-
-els.next.addEventListener("click", nextLevel);
 
 playStoryPreview();
