@@ -152,6 +152,7 @@ const state = {
   levelIndex: 0,
   messages: [],
   inventoryOpen: false,
+  customOpen: false,
   selectedEquipment: new Set(),
   selectedThisLevel: false,
   finished: false,
@@ -326,7 +327,7 @@ function inferCustomChoice(text) {
   return {
     label: "自定义：保命",
     effect: { survival: 10, clue: 4 },
-    result: "你的行动被判定为生存路线。它不一定最爽，但能让主角带着更多底牌走到下一关。",
+    result: "你的行动被判定为生存路线。它不一定最爽，但能让主角带着更多底牌走到下一节点。",
     unlock: "自定义行动归档：生存成长。",
   };
 }
@@ -335,13 +336,14 @@ function addLevelIntro() {
   const level = currentLevel();
   pushMessage("narrator", "gm", level.scene);
   pushMessage("narrator", level.line.speaker, level.line.text);
-  pushMessage("narrator", "gm", level.prompt, "选择会改变成长面板，并解锁下一关的不同优势。");
+  pushMessage("narrator", "gm", level.prompt, "选择会改变成长面板，并解锁下一节点的不同优势。");
 }
 
 function resetRun() {
   state.levelIndex = 0;
   state.messages = [];
   state.inventoryOpen = false;
+  state.customOpen = false;
   state.selectedEquipment.clear();
   state.selectedThisLevel = false;
   state.finished = false;
@@ -358,7 +360,7 @@ function resetRun() {
 
 function renderHeader() {
   const level = currentLevel();
-  els.sceneIndex.textContent = `Level ${state.levelIndex + 1}/${levels.length}`;
+  els.sceneIndex.textContent = `互动节点 ${state.levelIndex + 1}/${levels.length}`;
   els.sceneTitle.textContent = level.title;
   els.mood.textContent = level.mood;
 }
@@ -408,6 +410,13 @@ function renderInventoryPanel() {
   els.toggleInventory.setAttribute("aria-expanded", String(state.inventoryOpen));
 }
 
+function renderCustomComposer() {
+  els.playForm.hidden = !state.customOpen || state.selectedThisLevel || state.finished;
+  if (state.customOpen && !state.selectedThisLevel && !state.finished) {
+    els.input.focus();
+  }
+}
+
 function renderMessages() {
   els.messages.replaceChildren(
     ...state.messages.map((message) => {
@@ -447,16 +456,41 @@ function renderChoices() {
   const level = currentLevel();
   const buttons = level.choices.map((choice, index) => {
     const button = document.createElement("button");
+    const label = document.createElement("strong");
+    const action = document.createElement("span");
+    const meta = document.createElement("em");
     button.type = "button";
-    button.textContent = choice.label;
+    button.className = "branch-choice";
     button.disabled = state.selectedThisLevel || state.finished;
+    label.textContent = choice.label;
+    action.textContent = choice.action;
+    meta.textContent = effectText(choice.effect);
+    button.append(label, action, meta);
     button.addEventListener("click", () => resolveChoice(choice, choice.action));
     if (index === 0) button.classList.add("is-primary-choice");
     return button;
   });
+
+  const customButton = document.createElement("button");
+  const customLabel = document.createElement("strong");
+  const customAction = document.createElement("span");
+  const customMeta = document.createElement("em");
+  customButton.type = "button";
+  customButton.className = "branch-choice is-custom-choice";
+  customButton.disabled = state.selectedThisLevel || state.finished;
+  customLabel.textContent = "自由输入";
+  customAction.textContent = "不选预设支线，写下自己的行动。";
+  customMeta.textContent = "系统归类成长方向";
+  customButton.append(customLabel, customAction, customMeta);
+  customButton.addEventListener("click", () => {
+    state.customOpen = !state.customOpen;
+    render();
+  });
+  buttons.push(customButton);
+
   document.querySelector(".quick-row").replaceChildren(...buttons);
   els.next.disabled = !state.selectedThisLevel || state.finished;
-  els.next.textContent = state.levelIndex >= levels.length - 1 ? "查看结局" : "下一关";
+  els.next.textContent = state.levelIndex >= levels.length - 1 ? "查看结局" : "下一节点";
 }
 
 function render() {
@@ -466,6 +500,7 @@ function render() {
   renderInventoryPanel();
   renderMessages();
   renderChoices();
+  renderCustomComposer();
 }
 
 async function bootDemo() {
@@ -487,7 +522,7 @@ function resolveChoice(choice, actionText) {
     return;
   }
   if (state.selectedThisLevel) {
-    showToast("这一关已经结算，进入下一关继续。");
+    showToast("这一节点已经结算，进入下一节点继续。");
     return;
   }
 
@@ -496,6 +531,7 @@ function resolveChoice(choice, actionText) {
   applyEffect(finalEffect);
   if (choice.unlock) state.flags.push(choice.unlock.replace(/^获得：|^支线种子：|^成长方向：|^自定义行动归档：/, ""));
   state.selectedThisLevel = true;
+  state.customOpen = false;
   pushMessage("user", "user", actionText, tools.length ? `携带：${tools.join("、")}` : "");
   pushMessage("narrator", "gm", choice.result, `成长结算：${effectText(finalEffect)}\n${choice.unlock}`);
   render();
@@ -530,6 +566,7 @@ function nextLevel() {
 
   state.levelIndex += 1;
   state.selectedThisLevel = false;
+  state.customOpen = false;
   state.selectedEquipment.clear();
   addLevelIntro();
   render();

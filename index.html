@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>短剧关卡跑团 MVP</title>
-    <link rel="stylesheet" href="./styles.css?v=12" />
+    <title>短剧互动视频 MVP</title>
+    <link rel="stylesheet" href="./styles.css?v=13" />
   </head>
   <body>
     <main class="chat-shell">
@@ -25,7 +25,7 @@
       <section id="gamePanel" class="chat-panel" hidden>
         <header class="chat-header">
           <div>
-            <span id="sceneIndex">Level 1</span>
+            <span id="sceneIndex">互动节点 1</span>
             <h2 id="sceneTitle">宴席逼问</h2>
           </div>
           <p id="sceneMood">压迫 / 海上生存</p>
@@ -95,11 +95,14 @@
           </div>
         </section>
 
-        <form id="playForm" class="composer">
+        <div class="decision-controls">
           <button id="toggleInventoryButton" class="soft-button" type="button" aria-expanded="false">状态</button>
-          <input id="playerInput" type="text" placeholder="输入你的行动或台词" />
-          <button type="submit">发送</button>
-          <button id="nextLineButton" type="button">下一关</button>
+          <button id="nextLineButton" type="button">下一节点</button>
+        </div>
+
+        <form id="playForm" class="custom-composer" hidden>
+          <input id="playerInput" type="text" placeholder="写下你的自由行动，例如：我假装服软，暗中跟踪账房" />
+          <button type="submit">提交自由行动</button>
         </form>
 
         <div class="quick-row" aria-label="快捷行动">
@@ -112,6 +115,6 @@
     </main>
 
     <div id="toast" class="toast" hidden></div>
-    <script type="module" src="./app.js?v=12"></script>
+    <script type="module" src="./app.js?v=13"></script>
   </body>
 </html>
