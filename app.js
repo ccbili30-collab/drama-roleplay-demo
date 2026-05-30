@@ -44,6 +44,11 @@ const chapters = [
     speaker: "账房",
     text: "当年的账不是不能查，只是查了就没人能装不知道。",
     setup: "宴席散后，账房从后门离开。他走得很慢，像是在等一个胆子够大的人跟上。",
+    prose: [
+      "宴席后的风从后门灌进来，酒气被吹散，剩下的是木桌上没擦干净的油光。",
+      "账房没有回头。他把袖口攥得很紧，像攥着一张会要命的纸。你跟上去时，码头远处的灯一盏盏暗下去。",
+      "他终于停在墙影里，说当年的账不是不能查，只是查了之后，没人能继续装作自己干净。",
+    ],
     choices: [
       {
         label: "许诺保护",
@@ -71,6 +76,11 @@ const chapters = [
     speaker: "旁白",
     text: "旧书里的坐标、半截账页和船名开始互相对上。",
     setup: "夜里潮气很重。旧木箱还在原处，锁孔边有新划痕，说明已经有人来过。",
+    prose: [
+      "夜潮压着码头，木板缝里全是盐和湿气。那只旧木箱还摆在原处，像一张一直没有合上的嘴。",
+      "锁孔边多了新划痕。有人比你更早回来过，也许是为了销毁证据，也许是为了确认你到底拿走了什么。",
+      "旧书、账页、船名，在昏灯下慢慢互相咬合。你意识到自己找到的不是藏宝图，而是一条被人从记忆里删掉的航线。",
+    ],
     choices: [
       {
         label: "拼出坐标",
@@ -98,6 +108,11 @@ const chapters = [
     speaker: "阿七",
     text: "船可以借你，但这趟海不是去找钱，是去找死人留下的话。",
     setup: "潮水拍在木桩上。阿七把船绳绕了两圈，声音压得很低。你知道他已经站到你这边，但他还在等你给出一个方向。",
+    prose: [
+      "阿七把船绳绕了两圈，又松开一圈。他不看你，只看潮水，像是在判断这片海今晚会不会收人。",
+      "你听见远处有人喊你的名字，但声音很快被浪吞掉。大伯的人已经动了，码头上的每一盏灯都像一只睁开的眼。",
+      "阿七说船可以借你，但这趟海不是去找钱。那艘旧船上留下的，是死人没来得及说完的话。",
+    ],
     choices: [
       {
         label: "立刻出海",
@@ -178,6 +193,7 @@ const els = {
   statPrestige: $("#statPrestige"),
   statClue: $("#statClue"),
   statAlert: $("#statAlert"),
+  novelPage: $("#novelPage"),
   toolRow: $("#toolRow"),
   speakerName: $("#speakerName"),
   storyText: $("#storyText"),
@@ -380,6 +396,19 @@ function renderPresentation() {
   els.game.classList.toggle("is-novel-act", chapter.presentation === "novel");
 }
 
+function renderNovelPage() {
+  const chapter = currentChapter();
+  const paragraphs = chapter.presentation === "novel" ? chapter.prose || [chapter.setup] : [];
+  els.novelPage.hidden = !paragraphs.length || state.finished;
+  els.novelPage.replaceChildren(
+    ...paragraphs.map((text) => {
+      const paragraph = document.createElement("p");
+      paragraph.textContent = text;
+      return paragraph;
+    }),
+  );
+}
+
 function renderStory() {
   if (state.resolving || state.finished) return;
   const chapter = currentChapter();
@@ -454,6 +483,7 @@ function renderAdvance() {
 
 function render() {
   renderPresentation();
+  renderNovelPage();
   renderHud();
   renderStory();
   renderTools();
