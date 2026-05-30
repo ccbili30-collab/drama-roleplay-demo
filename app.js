@@ -188,9 +188,15 @@ const els = {
   statusTrust: $("#statusTrust"),
   statusClue: $("#statusClue"),
   equipmentList: $("#equipmentList"),
+  toolbeltList: $("#toolbeltList"),
   playForm: $("#playForm"),
   input: $("#playerInput"),
   nodeHint: $("#nodeHint"),
+  nodeTrail: $("#nodeTrail"),
+  sceneIcon: $("#sceneIcon"),
+  sceneCallout: $("#sceneCallout"),
+  sceneOutcome: $("#sceneOutcome"),
+  advanceBar: $("#advanceBar"),
   toast: $("#toast"),
   statPrestige: $("#statPrestige"),
   statSurvival: $("#statSurvival"),
@@ -365,6 +371,28 @@ function renderHeader() {
   els.mood.textContent = level.mood;
 }
 
+function renderSceneVisual() {
+  const level = currentLevel();
+  const icons = ["宴", "账", "箱"];
+  els.sceneIcon.textContent = icons[state.levelIndex] || "海";
+  els.sceneCallout.textContent = level.line.text;
+  els.sceneOutcome.textContent = state.flags.at(-1)
+    ? `最近获得：${state.flags.at(-1)}`
+    : "你的路线还没有成型。";
+  els.nodeTrail.replaceChildren(
+    ...levels.map((item, index) => {
+      const node = document.createElement("span");
+      node.textContent = String(index + 1);
+      node.title = item.title;
+      node.className = [
+        index < state.levelIndex ? "is-done" : "",
+        index === state.levelIndex ? "is-current" : "",
+      ].filter(Boolean).join(" ");
+      return node;
+    }),
+  );
+}
+
 function renderGrowth() {
   stats.forEach((stat) => {
     const value = clampScore(state.scores[stat.key] || 0);
@@ -401,6 +429,32 @@ function renderStatus() {
       note.textContent = item.note;
       card.append(checkbox, name, note);
       return card;
+    }),
+  );
+}
+
+function renderToolbelt() {
+  els.toolbeltList.replaceChildren(
+    ...player.equipment.map((item) => {
+      const button = document.createElement("button");
+      const name = document.createElement("strong");
+      const note = document.createElement("span");
+      const checked = state.selectedEquipment.has(item.name);
+      button.type = "button";
+      button.className = checked ? "tool-chip is-selected" : "tool-chip";
+      button.disabled = state.selectedThisLevel || state.finished;
+      name.textContent = item.name;
+      note.textContent = item.note;
+      button.append(name, note);
+      button.addEventListener("click", () => {
+        if (checked) {
+          state.selectedEquipment.delete(item.name);
+        } else {
+          state.selectedEquipment.add(item.name);
+        }
+        render();
+      });
+      return button;
     }),
   );
 }
@@ -455,16 +509,18 @@ function renderChoices() {
   const level = currentLevel();
   const buttons = level.choices.map((choice, index) => {
     const button = document.createElement("button");
+    const indexMark = document.createElement("i");
     const label = document.createElement("strong");
     const action = document.createElement("span");
     const meta = document.createElement("em");
     button.type = "button";
     button.className = "branch-choice";
     button.disabled = state.selectedThisLevel || state.finished;
+    indexMark.textContent = `0${index + 1}`;
     label.textContent = choice.label;
     action.textContent = choice.action;
     meta.textContent = effectText(choice.effect);
-    button.append(label, action, meta);
+    button.append(indexMark, label, action, meta);
     button.addEventListener("click", () => resolveChoice(choice, choice.action));
     if (index === 0) button.classList.add("is-primary-choice");
     return button;
@@ -477,10 +533,12 @@ function renderChoices() {
   customButton.type = "button";
   customButton.className = "branch-choice is-custom-choice";
   customButton.disabled = state.selectedThisLevel || state.finished;
+  const customIndex = document.createElement("i");
+  customIndex.textContent = "??";
   customLabel.textContent = "自由输入";
   customAction.textContent = "不选预设支线，写下自己的行动。";
   customMeta.textContent = "系统归类成长方向";
-  customButton.append(customLabel, customAction, customMeta);
+  customButton.append(customIndex, customLabel, customAction, customMeta);
   customButton.addEventListener("click", () => {
     state.customOpen = !state.customOpen;
     render();
@@ -495,14 +553,22 @@ function renderChoices() {
       : "选择后自动进入下一节点";
 }
 
+function renderAdvanceBar() {
+  els.advanceBar.hidden = !state.selectedThisLevel || state.finished;
+  els.advanceBar.classList.toggle("is-running", state.selectedThisLevel && !state.finished);
+}
+
 function render() {
   renderHeader();
+  renderSceneVisual();
   renderGrowth();
   renderStatus();
+  renderToolbelt();
   renderInventoryPanel();
   renderMessages();
   renderChoices();
   renderCustomComposer();
+  renderAdvanceBar();
 }
 
 async function bootDemo() {
@@ -554,7 +620,7 @@ function playerAct(rawText) {
 
 function scheduleAutoAdvance() {
   clearTimeout(transitionTimer);
-  transitionTimer = setTimeout(advanceNode, state.levelIndex >= levels.length - 1 ? 1200 : 2200);
+  transitionTimer = setTimeout(advanceNode, 2200);
 }
 
 function advanceNode() {

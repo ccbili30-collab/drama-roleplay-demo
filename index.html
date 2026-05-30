@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>短剧文字情景游戏 MVP</title>
-    <link rel="stylesheet" href="./styles.css?v=14" />
+    <link rel="stylesheet" href="./styles.css?v=15" />
   </head>
   <body>
     <main class="chat-shell">
@@ -30,6 +30,17 @@
           </div>
           <p id="sceneMood">压迫 / 海上生存</p>
         </header>
+
+        <section class="scene-visual" aria-label="当前情景">
+          <div id="nodeTrail" class="node-trail"></div>
+          <div class="scene-art">
+            <span id="sceneIcon">宴</span>
+            <div>
+              <strong id="sceneCallout">大伯把酒杯按在桌上。</strong>
+              <p id="sceneOutcome">你的路线还没有成型。</p>
+            </div>
+          </div>
+        </section>
 
         <section class="growth-panel" aria-label="角色成长">
           <article class="growth-card">
@@ -60,6 +71,10 @@
         </section>
 
         <section id="messageList" class="story-stage" aria-live="polite"></section>
+
+        <div id="advanceBar" class="advance-bar" hidden>
+          <span></span>
+        </div>
 
         <section id="inventoryPanel" class="inventory-panel" hidden>
           <div class="status-card" aria-label="玩家状态">
@@ -95,6 +110,14 @@
           </div>
         </section>
 
+        <section class="toolbelt-panel" aria-label="随身道具">
+          <div class="toolbelt-title">
+            <span>随身道具</span>
+            <strong>点选后影响本次结算</strong>
+          </div>
+          <div id="toolbeltList" class="toolbelt-list"></div>
+        </section>
+
         <div class="decision-controls">
           <button id="toggleInventoryButton" class="soft-button" type="button" aria-expanded="false">状态</button>
           <span id="nodeHint">选择后自动进入下一节点</span>
@@ -115,6 +138,6 @@
     </main>
 
     <div id="toast" class="toast" hidden></div>
-    <script type="module" src="./app.js?v=14"></script>
+    <script type="module" src="./app.js?v=15"></script>
   </body>
 </html>
