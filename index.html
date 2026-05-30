@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>短剧跑团 MVP</title>
-    <link rel="stylesheet" href="./styles.css?v=11" />
+    <title>短剧关卡跑团 MVP</title>
+    <link rel="stylesheet" href="./styles.css?v=12" />
   </head>
   <body>
     <main class="chat-shell">
@@ -25,11 +25,39 @@
       <section id="gamePanel" class="chat-panel" hidden>
         <header class="chat-header">
           <div>
-            <span id="sceneIndex">Scene 1</span>
+            <span id="sceneIndex">Level 1</span>
             <h2 id="sceneTitle">宴席逼问</h2>
           </div>
           <p id="sceneMood">压迫 / 海上生存</p>
         </header>
+
+        <section class="growth-panel" aria-label="角色成长">
+          <article class="growth-card">
+            <span>威望</span>
+            <strong id="statPrestige">12</strong>
+            <i><b id="barPrestige"></b></i>
+          </article>
+          <article class="growth-card">
+            <span>生存</span>
+            <strong id="statSurvival">18</strong>
+            <i><b id="barSurvival"></b></i>
+          </article>
+          <article class="growth-card">
+            <span>线索</span>
+            <strong id="statClue">20</strong>
+            <i><b id="barClue"></b></i>
+          </article>
+          <article class="growth-card">
+            <span>人脉</span>
+            <strong id="statAllies">8</strong>
+            <i><b id="barAllies"></b></i>
+          </article>
+          <article class="growth-card is-danger">
+            <span>大伯警觉</span>
+            <strong id="statAlert">10</strong>
+            <i><b id="barAlert"></b></i>
+          </article>
+        </section>
 
         <section id="messageList" class="message-list" aria-live="polite"></section>
 
@@ -71,7 +99,7 @@
           <button id="toggleInventoryButton" class="soft-button" type="button" aria-expanded="false">状态</button>
           <input id="playerInput" type="text" placeholder="输入你的行动或台词" />
           <button type="submit">发送</button>
-          <button id="nextLineButton" type="button">继续</button>
+          <button id="nextLineButton" type="button">下一关</button>
         </form>
 
         <div class="quick-row" aria-label="快捷行动">
@@ -84,6 +112,6 @@
     </main>
 
     <div id="toast" class="toast" hidden></div>
-    <script type="module" src="./app.js?v=11"></script>
+    <script type="module" src="./app.js?v=12"></script>
   </body>
 </html>
