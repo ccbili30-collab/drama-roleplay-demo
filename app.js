@@ -6,98 +6,106 @@ import {
 } from "./drama-roleplay-adapter.js";
 
 const loadingSteps = [
-  "读取短剧 URL",
-  "抽出主线剧情",
-  "把角色设定写入内部卡片",
-  "生成对话跑团",
+  "接上短视频结尾",
+  "整理旧书海图与分账旧债",
+  "打开跑团游标",
 ];
 
-const videoBeats = [
-  "破旧木箱被打开，旧书上标着未知海域和坐标。",
-  "男主发现自己跟大伯干了多年，却被卷进一场分账旧债。",
-  "宴席上，老者一句“赚了钱对半分”把所有矛盾点燃。",
-  "故事停在质问的一刻：你要怎么在这片海上活下去？",
+const choices = [
+  {
+    label: "逼他认账",
+    text: "我当众逼大伯承认当年赚了钱对半分的约定。",
+  },
+  {
+    label: "亮出海图",
+    text: "我拿出旧书海图，反问他为什么害怕这片海。",
+  },
+  {
+    label: "观察站队",
+    text: "我先忍住，观察宴席上谁站在大伯那边。",
+  },
+  {
+    label: "摔杯离席",
+    text: "我直接摔杯离席，回去查旧木箱里的坐标。",
+  },
 ];
 
 const drama = {
-  title: "雨夜替身契约",
+  title: "海上旧约",
   player: {
-    name: "林遥",
-    role: "替身契约者",
-    hp: 72,
-    trust: 18,
-    clue: "黑伞",
+    name: "你",
+    role: "被大伯逼问的年轻船民",
+    hp: 68,
+    trust: 16,
+    clue: "旧书海图",
     equipment: [
-      { name: "黑伞", note: "沈牧递来的遮蔽物" },
-      { name: "旧手机", note: "还能录音和拍照" },
-      { name: "合同复印件", note: "契约剧情锚点" },
+      { name: "旧书海图", note: "木箱里翻出的坐标线索" },
+      { name: "分账旧约", note: "大伯亲口说过赚了钱对半分" },
+      { name: "酒杯", note: "宴席上能打断局面的东西" },
+      { name: "木箱钥匙", note: "还能回去继续查旧箱" },
     ],
   },
   characters: {
     gm: {
       name: "旁白",
       short: "旁",
-      card: "只负责把短剧原剧情、玩家行动和下一幕锚点串起来。",
+      card: "只负责承接短视频结尾，把玩家行动接回海上旧约主线。",
     },
-    linyao: {
-      name: "林遥",
-      short: "遥",
-      card: "被迫卷入替身契约的女主，谨慎、缺钱，但很会观察细节。",
+    player: {
+      name: "你",
+      short: "你",
+      card: "跟着大伯在海上做事多年，刚发现旧木箱、旧书和海图坐标。",
     },
-    shenmu: {
-      name: "沈牧",
-      short: "沈",
-      card: "提出契约的男主，话少、强势，真实目的被短剧后段揭开。",
+    uncle: {
+      name: "大伯",
+      short: "伯",
+      card: "掌着船、人脉和旧账的人，用海上的生存规则压住你。",
     },
-    heiqi: {
-      name: "黑旗",
-      short: "旗",
-      card: "老宅晚宴的试探者，负责把伪装剧情推向危机。",
+    accountant: {
+      name: "账房",
+      short: "账",
+      card: "宴席边缘的沉默旁观者，知道钱到底怎么分过。",
     },
   },
   scenes: [
     {
-      title: "雨夜城际站",
-      mood: "悬疑 / 初遇",
-      status: { hp: 72, trust: 18, clue: "黑伞" },
-      anchor: "林遥沉默上车，进入沈家的替身契约。",
+      title: "宴席逼问",
+      mood: "压迫 / 海上生存",
+      status: { hp: 68, trust: 16, clue: "旧书海图" },
+      anchor: "短视频停在大伯的逼问：你怎么在这片海上活下去？",
       lines: [
-        { speaker: "gm", text: "雨声压住了站台广播。最后一班车即将离站，林遥在检票口前停住。" },
-        { speaker: "shenmu", text: "跟我走。别让他们看见你。" },
-        { speaker: "linyao", text: "你是谁？为什么知道我的名字？" },
+        { speaker: "gm", text: "宴席上的杯盏声停了。你刚说出当年“赚了钱对半分”的旧约，所有人都看向大伯。" },
+        { speaker: "uncle", text: "我跟你干了这么久，你真以为一句旧话就能分走海上的钱？" },
+        { speaker: "uncle", text: "你怎么在这片海上活下去？" },
       ],
     },
     {
-      title: "地下车库",
-      mood: "交易 / 压迫",
-      status: { hp: 66, trust: 24, clue: "合同复印件" },
-      anchor: "契约成立，林遥获得母亲手术费。",
+      title: "旧账当场",
+      mood: "对峙 / 站队",
+      status: { hp: 62, trust: 24, clue: "分账旧约" },
+      anchor: "你必须判断是当场逼大伯认账，还是先找到宴席里愿意开口的人。",
       lines: [
-        { speaker: "gm", text: "车库灯一盏盏亮起，合同被推到林遥面前。" },
-        { speaker: "shenmu", text: "三天。你只需要像她一样活三天。" },
-        { speaker: "linyao", text: "如果我拒绝呢？" },
+        { speaker: "gm", text: "屋里有人低头，有人看热闹，账房把手缩进袖口，像是怕你点他的名。" },
+        { speaker: "accountant", text: "当年的账……不是不能查，只是查了就没人能装不知道。" },
       ],
     },
     {
-      title: "老宅晚宴",
-      mood: "伪装 / 试探",
-      status: { hp: 54, trust: 37, clue: "后花园旧井" },
-      anchor: "林遥差点露馅，沈牧第一次替她圆场。",
+      title: "海图坐标",
+      mood: "线索 / 危险",
+      status: { hp: 58, trust: 30, clue: "未知海域坐标" },
+      anchor: "旧书里的海图坐标说明，这场分账旧债背后还有一片被故意藏起来的海。",
       lines: [
-        { speaker: "gm", text: "老宅晚宴安静得过分，所有人的目光都落在林遥身上。" },
-        { speaker: "heiqi", text: "小姐还记得后花园那口井里，藏着什么吗？" },
-        { speaker: "shenmu", text: "她今晚累了。这个问题，我替她答。" },
+        { speaker: "gm", text: "你想起旧木箱里的书。那几行坐标不像藏宝，更像有人不敢让下一代靠近。" },
+        { speaker: "uncle", text: "别拿那本破书说事。那片海，吞过的人比你见过的船还多。" },
       ],
     },
     {
-      title: "监控室反转",
-      mood: "揭露 / 共谋",
-      status: { hp: 48, trust: 52, clue: "监控备份" },
-      anchor: "身份揭露，二人转入共同调查。",
+      title: "出海前夜",
+      mood: "选择 / 开局",
+      status: { hp: 55, trust: 36, clue: "出海名单" },
+      anchor: "你要决定用旧约逼钱、用海图找真相，还是先保命活过下一次出海。",
       lines: [
-        { speaker: "gm", text: "监控墙上的画面被一格格放大。林遥终于看见，最早跟踪她的人并不是沈牧。" },
-        { speaker: "shenmu", text: "你不是她。但你也不是这场骗局的起点。" },
-        { speaker: "linyao", text: "那就别再把我当替身。把真相告诉我。" },
+        { speaker: "gm", text: "夜色压到码头，船灯一盏盏亮起。你的选择会决定谁敢跟你站到同一条船上。" },
       ],
     },
   ],
@@ -118,13 +126,7 @@ const els = {
   video: $("#videoPanel"),
   storyPlayer: $("#storyPlayer"),
   dramaVideo: $("#dramaVideo"),
-  videoCaption: $("#videoCaption"),
-  videoProgress: $("#videoProgress"),
-  replayVideo: $("#replayVideoButton"),
   swipeGate: $("#swipeGate"),
-  pay: $("#payPanel"),
-  payButton: $("#payButton"),
-  backToVideo: $("#backToVideoButton"),
   loading: $("#loadingPanel"),
   game: $("#gamePanel"),
   loadingText: $("#loadingText"),
@@ -147,7 +149,6 @@ const els = {
 };
 
 let toastTimer = 0;
-let videoTimer = 0;
 let touchStartY = 0;
 
 function sleep(ms) {
@@ -165,25 +166,18 @@ function showToast(text) {
 
 function setPanel(panel) {
   els.video.hidden = panel !== "video";
-  els.pay.hidden = panel !== "pay";
   els.loading.hidden = panel !== "loading";
   els.game.hidden = panel !== "game";
 }
 
 function resetStoryPlayer() {
-  clearInterval(videoTimer);
   els.dramaVideo.pause();
   els.dramaVideo.currentTime = 0;
   els.storyPlayer.classList.remove("is-ended");
   els.swipeGate.hidden = true;
-  els.videoProgress.style.width = "0%";
-  els.videoCaption.textContent = videoBeats[0];
 }
 
 function finishStoryPlayer() {
-  clearInterval(videoTimer);
-  els.videoProgress.style.width = "100%";
-  els.videoCaption.textContent = videoBeats.at(-1);
   els.storyPlayer.classList.add("is-ended");
   els.swipeGate.hidden = false;
 }
@@ -194,14 +188,9 @@ function playStoryPreview() {
   const playPromise = els.dramaVideo.play();
   if (playPromise?.catch) {
     playPromise.catch(() => {
-      showToast("浏览器阻止了自动播放，请点视频开始。");
+      showToast("点一下视频即可开始播放。");
     });
   }
-}
-
-function openPayChannel() {
-  if (els.swipeGate.hidden) return;
-  setPanel("pay");
 }
 
 function character(id) {
@@ -222,13 +211,39 @@ function isLastRoleplayChunk(snapshot = state.snapshot) {
     && run.currentChunkIndex >= Math.max(0, chunkCount - 1);
 }
 
+function choicePrompt() {
+  return [
+    "你可以直接选一个行动，也可以在输入框写自己的做法：",
+    ...choices.map((choice, index) => `${index + 1}. ${choice.text}`),
+  ].join("\n");
+}
+
+function appendOpeningBeat() {
+  state.messages.push(
+    {
+      type: "narrator",
+      speaker: "gm",
+      text: "短视频最后一幕接上：宴席忽然静下来。你刚提到当年那句“赚了钱对半分”，大伯的脸色沉了下去。",
+    },
+    {
+      type: "narrator",
+      speaker: "uncle",
+      text: "你怎么在这片海上活下去？",
+    },
+    {
+      type: "narrator",
+      speaker: "gm",
+      text: choicePrompt(),
+    },
+  );
+}
+
 function appendSourceChunk(snapshot = state.snapshot) {
   if (!snapshot?.chunk) return;
   state.messages.push({
     type: "narrator",
     speaker: "gm",
     text: snapshot.chunk.rawText,
-    note: `结构化短视频源：${snapshot.chapter?.title || "当前片段"}`,
   });
 }
 
@@ -237,7 +252,7 @@ function renderHeader() {
   const run = state.snapshot?.run;
   els.sceneIndex.textContent = `Scene ${(run?.currentChapterIndex || 0) + 1}/${drama.scenes.length}`;
   els.sceneTitle.textContent = scene.title;
-  els.mood.textContent = `${scene.mood} / 跑团游标 chunk ${(run?.currentChunkIndex || 0) + 1}`;
+  els.mood.textContent = scene.mood;
 }
 
 function renderStatus(scene) {
@@ -312,6 +327,15 @@ function renderMessages() {
   els.messages.scrollTop = els.messages.scrollHeight;
 }
 
+function renderQuickChoices() {
+  document.querySelectorAll("[data-choice]").forEach((button, index) => {
+    const choice = choices[index];
+    if (!choice) return;
+    button.textContent = choice.label;
+    button.dataset.choice = choice.text;
+  });
+}
+
 function render() {
   renderHeader();
   renderStatus(sceneForSnapshot());
@@ -324,7 +348,7 @@ async function bootDemo() {
 
   for (const step of loadingSteps) {
     els.loadingText.textContent = `${step}...`;
-    await sleep(320);
+    await sleep(220);
   }
 
   state.runtime = createDramaRoleplayRuntime(drama);
@@ -333,20 +357,14 @@ async function bootDemo() {
   state.inventoryOpen = false;
   state.selectedEquipment.clear();
   state.done = false;
-  state.messages.push({
-    type: "narrator",
-    speaker: "gm",
-    text: "短视频剧情已转换为跑团 sourceNovel。接下来会复用跑团的结构化文本、剧情锚点、偏移记录和游标推进。",
-    note: `sourceNovel：${state.snapshot.sourceNovel?.title || drama.title}`,
-  });
-  appendSourceChunk();
+  appendOpeningBeat();
   setPanel("game");
   render();
 }
 
 function nextLine() {
   if (!state.runtime || state.done) {
-    showToast("演示到这里结束。");
+    showToast("这一段演示到这里结束。");
     return;
   }
 
@@ -357,7 +375,6 @@ function nextLine() {
     type: "narrator",
     speaker: "gm",
     text: result.outputText,
-    note: `跑团处理完成。Prompt 预览：${result.promptPreview}`,
   });
   state.done = wasLast;
   if (!state.done) appendSourceChunk();
@@ -372,7 +389,7 @@ function playerAct(rawText) {
   }
 
   const tools = [...state.selectedEquipment];
-  const toolText = tools.length ? `携带工具：${tools.join("、")}` : "未携带额外工具";
+  const toolText = tools.length ? `携带：${tools.join("、")}` : "";
   state.messages.push({
     type: "user",
     speaker: "user",
@@ -393,35 +410,24 @@ function playerAct(rawText) {
     type: "narrator",
     speaker: "gm",
     text: result.outputText,
-    note: [
-      result.deviation ? `偏移已进入跑团 deviation：${result.deviation.scope}` : "",
-      `Prompt 预览：${result.promptPreview}`,
-    ].filter(Boolean).join("\n"),
   });
   const scene = sceneForSnapshot();
   els.statusTrust.textContent = Math.min((scene.status?.trust || drama.player.trust) + 6, 100);
-  els.statusClue.textContent = tools[0] || scene.status?.clue || "新偏移线索";
+  els.statusClue.textContent = tools[0] || scene.status?.clue || "新的行动后果";
   els.input.value = "";
   state.done = wasLast;
   if (!state.done) appendSourceChunk();
   render();
 }
 
-els.replayVideo.addEventListener("click", playStoryPreview);
-
-els.dramaVideo.addEventListener("timeupdate", () => {
-  const duration = Number.isFinite(els.dramaVideo.duration) && els.dramaVideo.duration > 0
-    ? els.dramaVideo.duration
-    : 138.9;
-  const progress = Math.min(100, Math.round((els.dramaVideo.currentTime / duration) * 100));
-  const beatIndex = Math.min(videoBeats.length - 1, Math.floor((progress / 100) * videoBeats.length));
-  els.videoProgress.style.width = `${progress}%`;
-  els.videoCaption.textContent = videoBeats[beatIndex];
-});
+function enterRoleplay() {
+  if (els.swipeGate.hidden) return;
+  bootDemo();
+}
 
 els.dramaVideo.addEventListener("ended", finishStoryPlayer);
 
-els.swipeGate.addEventListener("click", openPayChannel);
+els.swipeGate.addEventListener("click", enterRoleplay);
 
 els.storyPlayer.addEventListener("touchstart", (event) => {
   touchStartY = event.touches[0]?.clientY || 0;
@@ -429,16 +435,12 @@ els.storyPlayer.addEventListener("touchstart", (event) => {
 
 els.storyPlayer.addEventListener("touchend", (event) => {
   const endY = event.changedTouches[0]?.clientY || touchStartY;
-  if (touchStartY - endY > 42) openPayChannel();
+  if (touchStartY - endY > 42) enterRoleplay();
 });
 
 els.storyPlayer.addEventListener("wheel", (event) => {
-  if (event.deltaY > 24) openPayChannel();
+  if (event.deltaY > 24) enterRoleplay();
 });
-
-els.payButton.addEventListener("click", bootDemo);
-
-els.backToVideo.addEventListener("click", playStoryPreview);
 
 els.playForm.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -451,6 +453,8 @@ els.toggleInventory.addEventListener("click", () => {
 });
 
 els.next.addEventListener("click", nextLine);
+
+renderQuickChoices();
 
 document.querySelectorAll("[data-choice]").forEach((button) => {
   button.addEventListener("click", () => {

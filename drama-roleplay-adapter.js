@@ -91,20 +91,20 @@ function compactPromptPreview(messages) {
 }
 
 function localRoleplayOutput({ chapter, chunk, userInstruction = "", tools = [] }) {
-  const toolText = tools.length ? `她同时带着${tools.join("、")}，让这个选择不再只是嘴上的试探。` : "";
+  const toolText = tools.length ? `你同时带着${tools.join("、")}，这个选择会影响周围人判断你的底牌。` : "";
   const actionText = userInstruction
-    ? `玩家的行动插入了这一段：${userInstruction}。${toolText}`
-    : "玩家暂时不偏离，只让剧情按短视频原来的节奏继续。";
+    ? `你的行动进入这一段：${userInstruction}。${toolText}`
+    : "你暂时不出手，先让宴席上的压力继续发酵。";
   return [
     `【${chapter?.title || "短视频片段"}】`,
     chunk?.rawText || "",
     actionText,
-    "旁白按跑团规则处理：保留原剧情锚点，但把玩家行动记录为可能影响后续的因果偏移。",
+    "旁白只围绕旧约、海图和这片海推进，不跳出短视频留下的冲突。",
   ].filter(Boolean).join("\n");
 }
 
 function selectedToolsText(tools = []) {
-  return tools.length ? `携带工具：${tools.join("、")}` : "未携带额外工具";
+  return tools.length ? `携带：${tools.join("、")}` : "未携带额外工具";
 }
 
 export function createDramaRoleplayRuntime(drama) {
@@ -140,11 +140,11 @@ export function getDramaRoleplaySnapshot(runtime) {
 
 export function continueDramaRoleplay(runtime) {
   const { chapter, chunk } = activePosition(runtime.session);
-  const messages = buildActiveRoleplayMessages(runtime.session, { userInstruction: "继续短视频原剧情。" });
+  const messages = buildActiveRoleplayMessages(runtime.session, { userInstruction: "继续围绕海上旧约推进。" });
   const outputText = localRoleplayOutput({ chapter, chunk });
   const committed = commitRoleplayOutput(runtime.session, {
     outputText,
-    userInstruction: "继续短视频原剧情。",
+    userInstruction: "继续围绕海上旧约推进。",
     advance: true,
   });
   return {
@@ -173,7 +173,7 @@ export function actInDramaRoleplay(runtime, {
       affectedAnchors: chapter?.anchors?.map((anchor) => anchor.id).filter(Boolean) || [],
       createdAtChapter: run?.currentChapterIndex,
       createdAtChunk: run?.currentChunkIndex,
-      recoveryStrategy: "保留短视频原剧情功能，把玩家行动作为偏移桥接回后续剧情锚点。",
+      recoveryStrategy: "保留短视频结尾的海上旧约冲突，把玩家行动桥接回后续剧情锚点。",
     })
     : null;
   const outputText = localRoleplayOutput({ chapter, chunk, userInstruction: userText, tools });

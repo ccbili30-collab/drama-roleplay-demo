@@ -3,54 +3,32 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>短剧对话跑团 MVP</title>
-    <link rel="stylesheet" href="./styles.css?v=10" />
+    <title>短剧跑团 MVP</title>
+    <link rel="stylesheet" href="./styles.css?v=11" />
   </head>
   <body>
     <main class="chat-shell">
       <section id="videoPanel" class="video-panel">
-        <div id="storyPlayer" class="story-player" aria-label="短剧播放器">
-          <div class="video-topbar">
-            <span>短剧样片</span>
-            <strong>02:19</strong>
-          </div>
+        <div id="storyPlayer" class="story-player" aria-label="短剧播放器，播完后上滑进入跑团模式">
           <video id="dramaVideo" class="drama-video" src="./assets/drama-demo-web.mp4" playsinline controls preload="metadata"></video>
-          <div class="video-copy">
-            <p class="eyebrow">Drama Gate</p>
-            <h1>看完这一幕，接管主角命运</h1>
-            <p id="videoCaption">破旧木箱被打开，旧书上标着未知海域和坐标。</p>
-          </div>
-          <div class="video-progress"><span id="videoProgress"></span></div>
-          <button id="replayVideoButton" class="replay-button" type="button">重播</button>
           <button id="swipeGate" class="swipe-gate" type="button" hidden>
             <span>上滑进入跑团模式</span>
-            <strong>解锁付费通道</strong>
           </button>
-        </div>
-      </section>
-
-      <section id="payPanel" class="pay-panel" hidden>
-        <div class="pay-card">
-          <p class="eyebrow">Paid Channel</p>
-          <h2>解锁：从视频结尾入戏</h2>
-          <p>演示版会模拟支付成功，然后把刚才的短剧剧情转换成跑团 sourceNovel。</p>
-          <button id="payButton" type="button">模拟支付并进入</button>
-          <button id="backToVideoButton" type="button">返回短剧</button>
         </div>
       </section>
 
       <section id="loadingPanel" class="loading-panel" hidden>
         <div class="loader"></div>
-        <p id="loadingText">正在把短剧拆成对话...</p>
+        <p id="loadingText">正在接入跑团...</p>
       </section>
 
       <section id="gamePanel" class="chat-panel" hidden>
         <header class="chat-header">
           <div>
             <span id="sceneIndex">Scene 1</span>
-            <h2 id="sceneTitle">雨夜城际站</h2>
+            <h2 id="sceneTitle">宴席逼问</h2>
           </div>
-          <p id="sceneMood">悬疑 / 初遇</p>
+          <p id="sceneMood">压迫 / 海上生存</p>
         </header>
 
         <section id="messageList" class="message-list" aria-live="polite"></section>
@@ -59,12 +37,12 @@
           <div class="status-card" aria-label="玩家状态">
             <div class="panel-title">
               <span>状态</span>
-              <strong id="statusName">林遥</strong>
+              <strong id="statusName">你</strong>
             </div>
             <dl class="status-list">
               <div>
                 <dt>身份</dt>
-                <dd id="statusRole">替身契约者</dd>
+                <dd id="statusRole">被大伯逼问的年轻船民</dd>
               </div>
               <div>
                 <dt>体力</dt>
@@ -76,7 +54,7 @@
               </div>
               <div>
                 <dt>线索</dt>
-                <dd id="statusClue">黑伞</dd>
+                <dd id="statusClue">旧书海图</dd>
               </div>
             </dl>
           </div>
@@ -90,21 +68,22 @@
         </section>
 
         <form id="playForm" class="composer">
-          <button id="toggleInventoryButton" class="soft-button" type="button" aria-expanded="false">背包</button>
+          <button id="toggleInventoryButton" class="soft-button" type="button" aria-expanded="false">状态</button>
           <input id="playerInput" type="text" placeholder="输入你的行动或台词" />
           <button type="submit">发送</button>
           <button id="nextLineButton" type="button">继续</button>
         </form>
 
         <div class="quick-row" aria-label="快捷行动">
-          <button type="button" data-choice="我按原剧情继续观察。">按剧情走</button>
-          <button type="button" data-choice="我先问清楚他是谁。">追问</button>
-          <button type="button" data-choice="我记下关键线索，准备偏离原剧情。">偏移</button>
+          <button type="button" data-choice="我当众逼大伯承认当年赚了钱对半分的约定。">逼他认账</button>
+          <button type="button" data-choice="我拿出旧书海图，反问他为什么害怕这片海。">亮出海图</button>
+          <button type="button" data-choice="我先忍住，观察宴席上谁站在大伯那边。">观察站队</button>
+          <button type="button" data-choice="我直接摔杯离席，回去查旧木箱里的坐标。">摔杯离席</button>
         </div>
       </section>
     </main>
 
     <div id="toast" class="toast" hidden></div>
-    <script type="module" src="./app.js?v=10"></script>
+    <script type="module" src="./app.js?v=11"></script>
   </body>
 </html>
