@@ -18,6 +18,10 @@ const chapters = [
     speaker: "大伯",
     text: "你怎么在这片海上活下去？",
     setup: "宴席忽然静下来。你刚提到当年“赚了钱对半分”的旧约，所有人都看向大伯。",
+    prose: [
+      "宴席忽然静下来。你刚提到当年“赚了钱对半分”的旧约，所有人都看向大伯。",
+      "灯火压在桌面上，旧书海图、分账旧约和木箱钥匙都像没出鞘的刀。你必须先选一种活下去的方式。",
+    ],
     choices: [
       {
         label: "逼他认账",
@@ -145,6 +149,11 @@ const chapters = [
     speaker: "旁白",
     text: "雾散开时，旧船的影子像一座沉在海面上的祠堂。",
     setup: "你终于看见短视频结尾之后真正的入口。大伯要你在这片海上活下去，而答案就在那艘不该存在的旧船里。",
+    prose: [
+      "雾散开时，旧船的影子像一座沉在海面上的祠堂。",
+      "你终于看见短视频结尾之后真正的入口。大伯要你在这片海上活下去，而答案就在那艘不该存在的旧船里。",
+      "海风把灯火吹得忽明忽暗。现在每一种选择，都会决定你带回证据，还是先保住命。",
+    ],
     choices: [
       {
         label: "登船搜证",
@@ -201,6 +210,7 @@ const els = {
   bgmToggle: $("#bgmToggle"),
   novelPage: $("#novelPage"),
   toolRow: $("#toolRow"),
+  dialogueArea: $(".dialogue-area"),
   speakerName: $("#speakerName"),
   storyText: $("#storyText"),
   resultNote: $("#resultNote"),
@@ -357,24 +367,23 @@ function selectedToolEffect() {
     .reduce((merged, effect) => mergeEffects(merged, effect), {});
 }
 
-function effectText(effect) {
-  const labels = {
-    prestige: "威望",
-    survival: "生存",
-    clue: "线索",
-    allies: "人脉",
-    alert: "危险",
-  };
-  return Object.entries(effect)
-    .filter(([, value]) => value)
-    .map(([key, value]) => `${labels[key] || key}${value > 0 ? "+" : ""}${value}`)
-    .join(" / ");
-}
-
 function applyEffect(effect) {
   Object.entries(effect).forEach(([key, value]) => {
     state.scores[key] = clamp((state.scores[key] || 0) + value);
   });
+}
+
+function storyProgress(chapter) {
+  return (chapter.prose || [chapter.setup]).join("\n\n");
+}
+
+function setSpeaker(name) {
+  const isNarration = name === "旁白";
+  els.speakerName.hidden = isNarration;
+  els.dialogueArea.classList.toggle("is-narration", isNarration);
+  if (!isNarration) {
+    els.speakerName.textContent = name;
+  }
 }
 
 function inferCustom(text) {
@@ -412,15 +421,15 @@ function inferCustom(text) {
 
 function resolveChoice(choice) {
   if (state.resolving || state.finished) return;
-  const toolsText = [...state.selectedTools].length ? `携带：${[...state.selectedTools].join("、")}` : "";
+  const toolsText = [...state.selectedTools].length ? `你随身带着${[...state.selectedTools].join("、")}，这让你的动作多了一层底气。` : "";
   const finalEffect = mergeEffects(choice.effect, selectedToolEffect());
   applyEffect(finalEffect);
   state.resolving = true;
   state.customOpen = false;
-  els.speakerName.textContent = "你的行动";
+  setSpeaker("你的行动");
   els.storyText.textContent = choice.text;
   els.resultNote.hidden = false;
-  els.resultNote.textContent = `${choice.result}\n${effectText(finalEffect)}${toolsText ? `\n${toolsText}` : ""}`;
+  els.resultNote.textContent = [choice.result, toolsText].filter(Boolean).join("\n\n");
   renderHud();
   renderTools();
   renderChoices();
@@ -433,10 +442,10 @@ function advanceChapter() {
   if (state.chapterIndex >= chapters.length - 1) {
     state.finished = true;
     state.resolving = false;
-    els.speakerName.textContent = "本轮结局";
-    els.storyText.textContent = `威望 ${state.scores.prestige} / 线索 ${state.scores.clue} / 危险 ${state.scores.alert}`;
+    setSpeaker("本轮结局");
+    els.storyText.textContent = "海雾合拢，旧船上的灯还没有熄。";
     els.resultNote.hidden = false;
-    els.resultNote.textContent = "这一版演示到这里停住。下一步可以把不同数值接到不同短剧片段。";
+    els.resultNote.textContent = "你带回了足够改变局面的东西，也把自己推到了大伯的视线正中。下一幕，可以从这条航线继续往下分支。";
     render();
     return;
   }
@@ -484,10 +493,10 @@ function renderNovelPage() {
 function renderStory() {
   if (state.resolving || state.finished) return;
   const chapter = currentChapter();
-  els.speakerName.textContent = chapter.speaker;
+  setSpeaker(chapter.speaker);
   els.storyText.textContent = chapter.text;
   els.resultNote.hidden = false;
-  els.resultNote.textContent = chapter.setup;
+  els.resultNote.textContent = storyProgress(chapter);
 }
 
 function renderTools() {

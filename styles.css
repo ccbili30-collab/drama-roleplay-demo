@@ -420,6 +420,10 @@ button:disabled {
   backdrop-filter: blur(5px);
 }
 
+.dialogue-area.is-narration {
+  padding-top: 14px;
+}
+
 .speaker-tag {
   position: absolute;
   left: 16px;
