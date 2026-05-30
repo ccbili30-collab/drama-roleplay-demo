@@ -12,6 +12,7 @@ const tools = [
 
 const chapters = [
   {
+    presentation: "image",
     title: "宴席逼问",
     speaker: "大伯",
     text: "你怎么在这片海上活下去？",
@@ -38,6 +39,7 @@ const chapters = [
     ],
   },
   {
+    presentation: "novel",
     title: "账房袖口",
     speaker: "账房",
     text: "当年的账不是不能查，只是查了就没人能装不知道。",
@@ -64,6 +66,7 @@ const chapters = [
     ],
   },
   {
+    presentation: "novel",
     title: "夜查木箱",
     speaker: "旁白",
     text: "旧书里的坐标、半截账页和船名开始互相对上。",
@@ -86,6 +89,60 @@ const chapters = [
         text: "把旧书和账页分开藏，留一份假线索给来翻箱的人。",
         effect: { survival: 16, clue: 5, alert: -4 },
         result: "半夜果然有人来翻箱。他拿走了假线索，而你第一次让大伯的眼线扑空。",
+      },
+    ],
+  },
+  {
+    presentation: "novel",
+    title: "码头潮声",
+    speaker: "阿七",
+    text: "船可以借你，但这趟海不是去找钱，是去找死人留下的话。",
+    setup: "潮水拍在木桩上。阿七把船绳绕了两圈，声音压得很低。你知道他已经站到你这边，但他还在等你给出一个方向。",
+    choices: [
+      {
+        label: "立刻出海",
+        text: "趁大伯的人还没反应过来，带着阿七连夜离港。",
+        effect: { survival: 10, clue: 10, alert: 9 },
+        result: "小船滑进黑水里。你抢到了时间，也把自己暴露在了海面上。",
+      },
+      {
+        label: "放假消息",
+        text: "故意让人听见你明早才走，把追兵引向错误的码头。",
+        effect: { survival: 16, allies: 6, alert: -3 },
+        result: "巷口的影子很快消失。有人上钩了，你第一次把大伯的人牵着走。",
+      },
+      {
+        label: "问清旧船",
+        text: "先逼阿七说出那艘旧船为什么从族谱和账本里一起消失。",
+        effect: { clue: 18, prestige: 4, alert: 5 },
+        result: "阿七沉默很久，说出一个名字：沉银号。它不是失踪，是被人故意留在海上。",
+      },
+    ],
+  },
+  {
+    presentation: "image",
+    title: "黑海旧船",
+    speaker: "旁白",
+    text: "雾散开时，旧船的影子像一座沉在海面上的祠堂。",
+    setup: "你终于看见短视频结尾之后真正的入口。大伯要你在这片海上活下去，而答案就在那艘不该存在的旧船里。",
+    choices: [
+      {
+        label: "登船搜证",
+        text: "带阿七登上旧船，先找能证明当年分账真相的东西。",
+        effect: { clue: 22, survival: -4, alert: 8 },
+        result: "船舱里有一只被盐蚀烂的账箱。箱底压着当年所有人的手印。",
+      },
+      {
+        label: "点灯示威",
+        text: "在旧船甲板点灯，让追来的人都知道你已经找到这里。",
+        effect: { prestige: 20, alert: 16, allies: 5 },
+        result: "远处几艘船同时停住。你把暗处的局，硬生生拖到了所有人眼前。",
+      },
+      {
+        label: "割绳脱身",
+        text: "先割断拖缆，把旧船推离暗礁，保住自己和阿七的退路。",
+        effect: { survival: 22, clue: 6, alert: -2 },
+        result: "旧船被潮水带开。你没拿到最多证据，但你活着掌握了下一步。",
       },
     ],
   },
@@ -317,6 +374,12 @@ function renderHud() {
   els.statAlert.textContent = `危险 ${state.scores.alert}`;
 }
 
+function renderPresentation() {
+  const chapter = currentChapter();
+  els.game.classList.toggle("is-image-act", chapter.presentation === "image");
+  els.game.classList.toggle("is-novel-act", chapter.presentation === "novel");
+}
+
 function renderStory() {
   if (state.resolving || state.finished) return;
   const chapter = currentChapter();
@@ -390,6 +453,7 @@ function renderAdvance() {
 }
 
 function render() {
+  renderPresentation();
   renderHud();
   renderStory();
   renderTools();
