@@ -780,7 +780,7 @@ async function runSourceThinking() {
   await runLoadingSequence({
     title: "正在解析链接",
     steps: buildSourceThinkingSteps(state.sourceUrl),
-    stepDuration: 380,
+    stepDuration: 1100,
   });
 }
 
