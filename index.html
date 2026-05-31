@@ -4,13 +4,29 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>短剧 AI Galgame MVP</title>
-    <link rel="stylesheet" href="./styles.css?v=24" />
+    <link rel="stylesheet" href="./styles.css?v=25" />
   </head>
   <body>
     <main class="app-shell">
       <section id="videoPanel" class="video-panel">
-        <div id="storyPlayer" class="story-player" aria-label="短剧播放器，播完后上滑进入互动剧情">
-          <video id="dramaVideo" class="drama-video" src="./assets/drama-demo-web.mp4" playsinline controls preload="metadata"></video>
+        <div
+          id="storyPlayer"
+          class="story-player"
+          aria-label="短剧播放器，播放结束后可上滑进入互动剧情"
+        >
+          <video
+            id="dramaVideo"
+            class="drama-video"
+            src="./assets/drama-demo-web.mp4"
+            playsinline
+            controls
+            preload="metadata"
+          ></video>
+          <div class="demo-source-card" aria-live="polite">
+            <span id="demoSourceKicker" class="demo-source-kicker"></span>
+            <strong id="demoSourceTitle"></strong>
+            <p id="demoSourceMeta"></p>
+          </div>
           <button id="swipeGate" class="swipe-gate" type="button" hidden>
             <span>上滑入戏</span>
           </button>
@@ -19,7 +35,8 @@
 
       <section id="loadingPanel" class="loading-panel" hidden>
         <div class="loader"></div>
-        <p id="loadingText">正在接入剧情...</p>
+        <p id="loadingText"></p>
+        <p id="loadingMeta" class="loading-meta"></p>
       </section>
 
       <section id="gamePanel" class="galgame-panel" hidden>
@@ -28,7 +45,9 @@
             <span id="nodeIndex">Chapter 1</span>
             <strong id="sceneTitle">宴席逼问</strong>
           </div>
-          <button id="bgmToggle" class="bgm-toggle" type="button" aria-pressed="false">悬疑BGM</button>
+          <button id="bgmToggle" class="bgm-toggle" type="button" aria-pressed="false">
+            悬疑 BGM
+          </button>
           <div class="stat-pills" aria-label="角色状态">
             <span id="statPrestige">威望 12</span>
             <span id="statClue">线索 20</span>
@@ -66,6 +85,6 @@
     </main>
 
     <div id="toast" class="toast" hidden></div>
-    <script type="module" src="./app.js?v=24"></script>
+    <script type="module" src="./app.js?v=25"></script>
   </body>
 </html>

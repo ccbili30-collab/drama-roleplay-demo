@@ -92,6 +92,44 @@ button:disabled {
   object-fit: cover;
 }
 
+.demo-source-card {
+  position: absolute;
+  left: 16px;
+  top: 16px;
+  z-index: 2;
+  display: grid;
+  gap: 4px;
+  width: min(72%, 260px);
+  border: 1px solid rgba(255, 242, 214, 0.24);
+  border-radius: 18px 18px 18px 6px;
+  padding: 10px 12px 11px;
+  color: rgba(255, 242, 214, 0.92);
+  background:
+    linear-gradient(180deg, rgba(6, 8, 10, 0.46), rgba(6, 8, 10, 0.24)),
+    radial-gradient(circle at top left, rgba(216, 175, 106, 0.16), transparent 55%);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(6px);
+}
+
+.demo-source-kicker {
+  color: rgba(255, 242, 214, 0.62);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.22em;
+}
+
+.demo-source-card strong {
+  font-size: 16px;
+  line-height: 1.2;
+}
+
+.demo-source-card p {
+  margin: 0;
+  color: rgba(255, 242, 214, 0.72);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
 .story-player.is-ended::after {
   content: "";
   position: absolute;
@@ -132,6 +170,13 @@ button:disabled {
 
 .loading-panel p {
   color: var(--ivory-soft);
+}
+
+.loading-meta {
+  width: min(80%, 280px);
+  margin: 8px auto 0;
+  font-size: 12px;
+  line-height: 1.6;
 }
 
 .galgame-panel {

@@ -1,8 +1,10 @@
-const loadingSteps = [
-  "接上短视频结尾",
-  "装入角色状态",
-  "生成互动选项",
-];
+const DEFAULT_DEMO_SOURCE_URL = "https://v.douyin.com/sea-demo/";
+
+const DEMO_SOURCE = {
+  kicker: "DEMO ROUTE",
+  title: "海上旧约 演示短剧",
+  mode: "固定演示模板",
+};
 
 const tools = [
   { name: "旧书海图", effect: { clue: 4 }, note: "强化线索" },
@@ -24,10 +26,10 @@ const chapters = [
     title: "宴席逼问",
     speaker: "大伯",
     text: "你怎么在这片海上活下去？",
-    setup: "宴席忽然静下来。你刚提到当年“赚了钱对半分”的旧约，所有人都看向大伯。",
+    setup: "宴席忽然静了下来。你刚提到当年的分账旧约，桌上的人全都看向大伯。",
     prose: [
-      "宴席忽然静下来。你刚提到当年“赚了钱对半分”的旧约，所有人都看向大伯。",
-      "灯火压在桌面上，旧书海图、分账旧约和木箱钥匙都像没出鞘的刀。你必须先选一种活下去的方式。",
+      "灯火压在桌面上，旧书海图、分账旧约和木箱钥匙像三把还没出鞘的刀。",
+      "你必须先选一种活下去的姿态，是当众掀桌，还是先忍住，把真正的入口逼出来。",
     ],
     dialogues: [
       { actor: "uncle", text: "你怎么在这片海上活下去？" },
@@ -39,19 +41,19 @@ const chapters = [
         label: "逼他认账",
         text: "当众逼大伯承认当年的分账约定。",
         effect: { prestige: 14, alert: 12, survival: -4 },
-        result: "你没有退。桌边的年轻船工第一次抬头看你，大伯的笑却冷了下来。",
+        result: "你没有退。桌边的年轻船工第一次抬头看你，大伯的笑却一点点冷了下去。",
       },
       {
         label: "亮出海图",
-        text: "拿出旧书海图，反问他为什么害怕这片海。",
+        text: "拿出旧书海图，反问他为何怕这片海。",
         effect: { clue: 16, alert: 10, prestige: 4 },
-        result: "旧书一露，屋里有几个人同时变了脸。大伯只盯着海图边角的坐标。",
+        result: "海图一露，屋里有几个人同时变了脸。大伯盯住了图角的坐标。",
       },
       {
         label: "观察站队",
-        text: "先忍住，观察宴席上谁站在大伯那边。",
+        text: "先忍住，观察谁站在大伯那边，谁在回避你的目光。",
         effect: { allies: 12, survival: 8, prestige: -2 },
-        result: "你把话咽回去，开始看每个人的眼神。账房摸了一下袖口。",
+        result: "你把话咽了回去，只盯每个人的眼神。账房悄悄摸了一下袖口。",
       },
     ],
   },
@@ -60,36 +62,35 @@ const chapters = [
     backdrop: "./assets/accountant-alley.png",
     title: "账房袖口",
     speaker: "账房",
-    text: "当年的账不是不能查，只是查了就没人能装不知道。",
-    setup: "宴席散后，账房从后门离开。他走得很慢，像是在等一个胆子够大的人跟上。",
+    text: "当年的账不是不能查，只是查了以后，就没人还能装作自己干净。",
+    setup: "宴席散后，账房从后门离开。他走得很慢，像是在等一个胆子够大的人跟上来。",
     prose: [
-      "宴席后的风从后门灌进来，酒气被吹散，剩下的是木桌上没擦干净的油光。",
-      "账房没有回头。他把袖口攥得很紧，像攥着一张会要命的纸。你跟上去时，码头远处的灯一盏盏暗下去。",
-      "他终于停在墙影里，说当年的账不是不能查，只是查了之后，没人能继续装作自己干净。",
+      "酒气被后门的风吹散，巷子里只剩潮湿的木味和远处码头的铁锈声。",
+      "账房把袖口攥得很紧，像是里面藏着一张会要命的纸。",
     ],
     dialogues: [
       { actor: "accountant", text: "别再跟了。你再往前一步，我今晚就走不出这条巷子。" },
-      { actor: "hero", with: "accountant", text: "你藏在袖口里的，不是账，是能救你命的东西。" },
+      { actor: "hero", with: "accountant", text: "你袖子里藏的不是账，是能救你命的东西。" },
       { actor: "accountant", text: "救命？那张纸只会让活人想起死人。" },
     ],
     choices: [
       {
         label: "许诺保护",
-        text: "告诉账房，只要他说出旧账，你会保证他今晚能离开码头。",
+        text: "承诺护送他离开码头，交换当年的旧账。",
         effect: { allies: 14, survival: 5, alert: 4 },
-        result: "账房终于把半截账页塞给你。上面不是金额，而是一串船名和出海日期。",
+        result: "账房终于交出半截账页。上面不是金额，而是一串船名和出海日期。",
       },
       {
         label: "旧约压他",
-        text: "把分账旧约拍在他面前，让他承认当年谁拿走了钱。",
+        text: "把分账旧约拍在他面前，逼他交代当年谁拿走了钱。",
         effect: { prestige: 10, clue: 8, alert: 8 },
-        result: "账房被你逼退一步。他说出一个船名，又立刻闭嘴，因为巷口有人在看。",
+        result: "账房被你逼退一步，只说出一条船名，随即警觉地闭了嘴。",
       },
       {
         label: "海图交换",
-        text: "只给他看海图一角，问他是否认得这个坐标。",
+        text: "只给他看海图一角，问他认不认得这个坐标。",
         effect: { clue: 15, allies: 5, alert: 6 },
-        result: "账房认出了坐标，却先问你旧书是不是从木箱里拿的。",
+        result: "他认出了坐标，却先反问你，那本旧书是不是从木箱里拿的。",
       },
     ],
   },
@@ -98,36 +99,35 @@ const chapters = [
     backdrop: "./assets/dockside-chest.png",
     title: "夜查木箱",
     speaker: "旁白",
-    text: "旧书里的坐标、半截账页和船名开始互相对上。",
-    setup: "夜里潮气很重。旧木箱还在原处，锁孔边有新划痕，说明已经有人来过。",
+    text: "旧书里的坐标、半截账页和那条船名，终于开始互相对上了。",
+    setup: "夜里潮气很重。旧木箱还在原处，锁孔边缘多出了新划痕。",
     prose: [
-      "夜潮压着码头，木板缝里全是盐和湿气。那只旧木箱还摆在原处，像一张一直没有合上的嘴。",
-      "锁孔边多了新划痕。有人比你更早回来过，也许是为了销毁证据，也许是为了确认你到底拿走了什么。",
-      "旧书、账页、船名，在昏灯下慢慢互相咬合。你意识到自己找到的不是藏宝图，而是一条被人从记忆里删掉的航线。",
+      "有人比你更早回来过，也许是为了销毁证据，也许是为了确认你到底拿走了什么。",
+      "海图、账页、船名，在昏灯下慢慢咬合。你意识到自己找到的不是藏宝图，而是一条被抹掉的航线。",
     ],
     dialogues: [
       { actor: "hero", with: "accountant", text: "锁孔边是新划痕。有人回来过，而且比我更急。" },
       { actor: "accountant", text: "他们不是来找钱，是来确认你拿走了什么。" },
-      { actor: "hero", with: "accountant", text: "旧书、账页、船名……终于对上了。" },
+      { actor: "hero", with: "accountant", text: "旧书、账页、船名，终于对上了。" },
     ],
     choices: [
       {
         label: "拼出坐标",
-        text: "把旧书海图和账页拼在一起，确认未知海域的位置。",
+        text: "把海图和账页拼在一起，确认未知海域的位置。",
         effect: { clue: 18, survival: 4, alert: 5 },
         result: "坐标拼上了。那不是藏宝点，而是一条被删掉的航线。",
       },
       {
-        label: "找阿七上船",
-        text: "去找船工阿七，问他愿不愿意陪你出一次夜海。",
+        label: "去找阿七",
+        text: "去找船工阿七，问他愿不愿意陪你夜里出海。",
         effect: { allies: 16, survival: 8, alert: 4 },
-        result: "阿七没有立刻答应，只问你：如果大伯派人追，你敢不敢不回头？",
+        result: "阿七没有立刻答应，只问你一句，如果大伯派人追，你敢不敢不回头。",
       },
       {
         label: "藏起证据",
-        text: "把旧书和账页分开藏，留一份假线索给来翻箱的人。",
+        text: "把旧书和账页分开藏，只留一份假线索给回来翻箱的人。",
         effect: { survival: 16, clue: 5, alert: -4 },
-        result: "半夜果然有人来翻箱。他拿走了假线索，而你第一次让大伯的眼线扑空。",
+        result: "半夜果然有人回来过。对方拿走了假线索，而你第一次让大伯扑了空。",
       },
     ],
   },
@@ -136,12 +136,11 @@ const chapters = [
     backdrop: "./assets/midnight-dock.png",
     title: "码头潮声",
     speaker: "阿七",
-    text: "船可以借你，但这趟海不是去找钱，是去找死人留下的话。",
-    setup: "潮水拍在木桩上。阿七把船绳绕了两圈，声音压得很低。你知道他已经站到你这边，但他还在等你给出一个方向。",
+    text: "船可以借你，但这趟海不是去找钱，是去找死人没来得及说完的话。",
+    setup: "潮水拍在木桩上。阿七把船缆绕了两圈，压低了声音。",
     prose: [
-      "阿七把船绳绕了两圈，又松开一圈。他不看你，只看潮水，像是在判断这片海今晚会不会收人。",
-      "你听见远处有人喊你的名字，但声音很快被浪吞掉。大伯的人已经动了，码头上的每一盏灯都像一只睁开的眼。",
-      "阿七说船可以借你，但这趟海不是去找钱。那艘旧船上留下的，是死人没来得及说完的话。",
+      "远处有人在喊你的名字，但声音很快就被海浪吃掉了。",
+      "码头上的每一盏灯都像一只睁开的眼，你知道大伯已经开始动人了。",
     ],
     dialogues: [
       { actor: "aqi", text: "船可以借你，但这趟海不是去找钱。" },
@@ -151,21 +150,21 @@ const chapters = [
     choices: [
       {
         label: "立刻出海",
-        text: "趁大伯的人还没反应过来，带着阿七连夜离港。",
+        text: "趁追兵还没反应过来，带着阿七连夜离港。",
         effect: { survival: 10, clue: 10, alert: 9 },
-        result: "小船滑进黑水里。你抢到了时间，也把自己暴露在了海面上。",
+        result: "小船滑进黑水里。你抢到了时间，也把自己暴露在海面上。",
       },
       {
         label: "放假消息",
-        text: "故意让人听见你明早才走，把追兵引向错误的码头。",
+        text: "故意让人听见你明早才走，把追兵引向错误码头。",
         effect: { survival: 16, allies: 6, alert: -3 },
-        result: "巷口的影子很快消失。有人上钩了，你第一次把大伯的人牵着走。",
+        result: "巷口的影子很快散了。有人上钩了，你第一次把大伯的人牵着走。",
       },
       {
         label: "问清旧船",
-        text: "先逼阿七说出那艘旧船为什么从族谱和账本里一起消失。",
+        text: "逼阿七先说清，那艘旧船为什么会从账本和族谱里一起消失。",
         effect: { clue: 18, prestige: 4, alert: 5 },
-        result: "阿七沉默很久，说出一个名字：沉银号。它不是失踪，是被人故意留在海上。",
+        result: "阿七沉默很久，只说出一个名字：沉银号。它不是失踪，是被人故意留在海上。",
       },
     ],
   },
@@ -174,34 +173,33 @@ const chapters = [
     backdrop: "./assets/black-sea-old-ship.png",
     title: "黑海旧船",
     speaker: "旁白",
-    text: "雾散开时，旧船的影子像一座沉在海面上的祠堂。",
-    setup: "你终于看见短视频结尾之后真正的入口。大伯要你在这片海上活下去，而答案就在那艘不该存在的旧船里。",
+    text: "雾散开时，旧船的影子像一座沉在海上的祠堂。",
+    setup: "你终于看见短剧结尾之后真正的入口，那艘不该存在的旧船就停在雾里。",
     prose: [
-      "雾散开时，旧船的影子像一座沉在海面上的祠堂。",
-      "你终于看见短视频结尾之后真正的入口。大伯要你在这片海上活下去，而答案就在那艘不该存在的旧船里。",
-      "海风把灯火吹得忽明忽暗。现在每一种选择，都会决定你带回证据，还是先保住命。",
+      "海风把灯火吹得忽明忽暗。现在每一种选择，都在决定你是先带回证据，还是先保住命。",
+      "这里不再是看戏的位置，而是你真正入局的第一步。",
     ],
     dialogues: [
-      { actor: "aqi", text: "看见了吗？沉银号。族里说它早就没了。" },
-      { actor: "hero", with: "aqi", text: "船还在，账就还在。有人只是把它藏进海雾里。" },
+      { actor: "aqi", text: "看见了吗？沉银号。族里都说它早就没了。" },
+      { actor: "hero", with: "aqi", text: "船还在，账就还在。有人只是把它藏进了海雾里。" },
       { actor: "aqi", text: "那你现在要登船，还是先想好怎么活着回来？" },
     ],
     choices: [
       {
         label: "登船搜证",
-        text: "带阿七登上旧船，先找能证明当年分账真相的东西。",
+        text: "带阿七登上旧船，先找能证明当年分账真相的证据。",
         effect: { clue: 22, survival: -4, alert: 8 },
-        result: "船舱里有一只被盐蚀烂的账箱。箱底压着当年所有人的手印。",
+        result: "船舱里有一只被盐蚀烂的账箱，箱底压着当年所有人的手印。",
       },
       {
         label: "点灯示威",
-        text: "在旧船甲板点灯，让追来的人都知道你已经找到这里。",
+        text: "在甲板点灯，让追来的人都知道你已经找到了这里。",
         effect: { prestige: 20, alert: 16, allies: 5 },
         result: "远处几艘船同时停住。你把暗处的局，硬生生拖到了所有人眼前。",
       },
       {
-        label: "割绳脱身",
-        text: "先割断拖缆，把旧船推离暗礁，保住自己和阿七的退路。",
+        label: "剪缆脱身",
+        text: "先剪断拖缆，把旧船推离暗礁，保住自己和阿七的退路。",
         effect: { survival: 22, clue: 6, alert: -2 },
         result: "旧船被潮水带开。你没拿到最多证据，但你活着掌握了下一步。",
       },
@@ -225,6 +223,9 @@ const state = {
   },
 };
 
+const demoSource = readDemoSource();
+const loadingSteps = buildLoadingSteps(demoSource);
+
 const $ = (selector) => document.querySelector(selector);
 
 const els = {
@@ -234,6 +235,7 @@ const els = {
   swipeGate: $("#swipeGate"),
   loading: $("#loadingPanel"),
   loadingText: $("#loadingText"),
+  loadingMeta: $("#loadingMeta"),
   game: $("#gamePanel"),
   nodeIndex: $("#nodeIndex"),
   sceneTitle: $("#sceneTitle"),
@@ -256,6 +258,9 @@ const els = {
   customInput: $("#customInput"),
   advanceBar: $("#advanceBar"),
   toast: $("#toast"),
+  demoSourceKicker: $("#demoSourceKicker"),
+  demoSourceTitle: $("#demoSourceTitle"),
+  demoSourceMeta: $("#demoSourceMeta"),
 };
 
 let touchStartY = 0;
@@ -268,6 +273,47 @@ const bgm = {
   master: null,
   playing: false,
 };
+
+function readDemoSource() {
+  const params = new URLSearchParams(window.location.search);
+  const incomingUrl = ["source", "url", "link"]
+    .map((key) => params.get(key)?.trim())
+    .find(Boolean) || "";
+
+  return {
+    url: incomingUrl || DEFAULT_DEMO_SOURCE_URL,
+    hasIncomingUrl: Boolean(incomingUrl),
+  };
+}
+
+function buildLoadingSteps(source) {
+  return [
+    source.hasIncomingUrl ? "已接收演示链接" : "使用内置演示链接",
+    "命中固定短剧模板",
+    "载入预设剧情与跑团入口",
+  ];
+}
+
+function shortenUrl(url) {
+  if (url.length <= 42) return url;
+  return `${url.slice(0, 24)}...${url.slice(-12)}`;
+}
+
+function demoSourceMetaText() {
+  const sourceText = demoSource.hasIncomingUrl
+    ? `收到链接：${shortenUrl(demoSource.url)}`
+    : "未传入外部链接，使用内置演示源";
+  return `${sourceText} · ${DEMO_SOURCE.mode}`;
+}
+
+function renderDemoChrome() {
+  els.demoSourceKicker.textContent = DEMO_SOURCE.kicker;
+  els.demoSourceTitle.textContent = DEMO_SOURCE.title;
+  els.demoSourceMeta.textContent = demoSourceMetaText();
+  els.loadingMeta.textContent = demoSource.hasIncomingUrl
+    ? "演示模式下不会真实解析外部视频，统一映射到这条预设短剧。"
+    : "当前直接使用内置演示短剧，不请求任何外部解析服务。";
+}
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -342,7 +388,7 @@ async function toggleBgm() {
   bgm.playing = !bgm.playing;
   els.bgmToggle.setAttribute("aria-pressed", String(bgm.playing));
   els.bgmToggle.classList.toggle("is-playing", bgm.playing);
-  els.bgmToggle.textContent = bgm.playing ? "BGM开" : "悬疑BGM";
+  els.bgmToggle.textContent = bgm.playing ? "BGM 已开" : "悬疑 BGM";
   window.clearTimeout(bgmTimer);
   if (bgm.playing) {
     scheduleSuspenseLoop();
@@ -376,13 +422,7 @@ function finishVideo() {
   els.swipeGate.hidden = false;
 }
 
-async function bootGame() {
-  setPanel("loading");
-  for (const step of loadingSteps) {
-    els.loadingText.textContent = `${step}...`;
-    await sleep(180);
-  }
-
+function resetRunState() {
   clearTimeout(advanceTimer);
   state.chapterIndex = 0;
   state.selectedTools.clear();
@@ -390,7 +430,23 @@ async function bootGame() {
   state.finished = false;
   state.customOpen = false;
   state.dialogueStep = 0;
-  state.scores = { prestige: 12, survival: 18, clue: 20, allies: 8, alert: 10 };
+  state.scores = {
+    prestige: 12,
+    survival: 18,
+    clue: 20,
+    allies: 8,
+    alert: 10,
+  };
+}
+
+async function bootGame() {
+  setPanel("loading");
+  renderDemoChrome();
+  for (const step of loadingSteps) {
+    els.loadingText.textContent = `${step}...`;
+    await sleep(210);
+  }
+  resetRunState();
   setPanel("game");
   render();
 }
@@ -430,41 +486,44 @@ function setSpeaker(name) {
 }
 
 function inferCustom(text) {
-  if (/海图|坐标|旧书|木箱|查|真相/.test(text)) {
+  if (/海图|坐标|旧书|木箱|真相/.test(text)) {
     return {
       label: "自由行动",
       text,
       effect: { clue: 12, alert: 5 },
-      result: "你选择追索线索。旧书、木箱和海上旧债被你连成了一条暗线。",
+      result: "你选择紧咬线索。旧书、木箱和海上的旧债，被你慢慢连成了一条暗线。",
     };
   }
-  if (/认账|逼|摔|威胁|当众/.test(text)) {
+  if (/认账|威胁|当众|逼/.test(text)) {
     return {
       label: "自由行动",
       text,
       effect: { prestige: 12, alert: 9, survival: -2 },
-      result: "你选择正面施压。场面被你压出裂缝，大伯也开始真正把你当作威胁。",
+      result: "你选择正面施压。场面被你压出裂缝，大伯也开始把你当成真正的威胁。",
     };
   }
-  if (/观察|跟踪|忍|等|站队|看/.test(text)) {
+  if (/观察|跟踪|站队|看/.test(text)) {
     return {
       label: "自由行动",
       text,
       effect: { allies: 10, survival: 6 },
-      result: "你选择观察人心。谁害怕、谁沉默、谁想帮你，都开始浮出水面。",
+      result: "你选择先看人心。谁害怕，谁沉默，谁想帮你，都慢慢浮出了水面。",
     };
   }
   return {
     label: "自由行动",
     text,
     effect: { survival: 10, clue: 4 },
-    result: "你选择保住主动权。它不一定最锋利，但能让你带着更多底牌走下去。",
+    result: "你保住了主动权。它不一定最锋利，但能让你带着更多底牌往下走。",
   };
 }
 
 function resolveChoice(choice) {
   if (state.resolving || state.finished) return;
-  const toolsText = [...state.selectedTools].length ? `你随身带着${[...state.selectedTools].join("、")}，这让你的动作多了一层底气。` : "";
+  const carriedTools = [...state.selectedTools];
+  const toolsText = carriedTools.length
+    ? `你随身带着${carriedTools.join("、")}，这让你的行动多了一层底气。`
+    : "";
   const finalEffect = mergeEffects(choice.effect, selectedToolEffect());
   applyEffect(finalEffect);
   state.resolving = true;
@@ -488,7 +547,8 @@ function advanceChapter() {
     setSpeaker("本轮结局");
     els.storyText.textContent = "海雾合拢，旧船上的灯还没有熄。";
     els.resultNote.hidden = false;
-    els.resultNote.textContent = "你带回了足够改变局面的东西，也把自己推到了大伯的视线正中。下一幕，可以从这条航线继续往下分支。";
+    els.resultNote.textContent =
+      "你已经踏进短剧结尾之后真正的局里。下一阶段可以继续沿着这条航线，把更多分支做成完整关卡。";
     render();
     return;
   }
@@ -583,26 +643,28 @@ function renderChoices() {
   }
   els.choiceGrid.hidden = false;
   const chapter = currentChapter();
-  const choiceButtons = state.finished ? [] : chapter.choices.map((choice) => {
-    const button = document.createElement("button");
-    const label = document.createElement("strong");
-    const desc = document.createElement("span");
-    button.type = "button";
-    button.className = "choice-card";
-    button.disabled = state.resolving;
-    label.textContent = choice.label;
-    desc.textContent = choice.text;
-    button.append(label, desc);
-    button.addEventListener("click", () => resolveChoice(choice));
-    return button;
-  });
+  const choiceButtons = state.finished
+    ? []
+    : chapter.choices.map((choice) => {
+        const button = document.createElement("button");
+        const label = document.createElement("strong");
+        const desc = document.createElement("span");
+        button.type = "button";
+        button.className = "choice-card";
+        button.disabled = state.resolving;
+        label.textContent = choice.label;
+        desc.textContent = choice.text;
+        button.append(label, desc);
+        button.addEventListener("click", () => resolveChoice(choice));
+        return button;
+      });
 
   if (!state.finished) {
     const custom = document.createElement("button");
     custom.type = "button";
     custom.className = "choice-card is-custom";
     custom.disabled = state.resolving;
-    custom.innerHTML = "<strong>自由行动</strong><span>写下自己的做法</span>";
+    custom.innerHTML = "<strong>自由行动</strong><span>写下你自己的做法</span>";
     custom.addEventListener("click", () => {
       state.customOpen = !state.customOpen;
       renderCustom();
@@ -615,7 +677,9 @@ function renderChoices() {
 
 function renderCustom() {
   els.customForm.hidden = !state.customOpen || state.resolving || state.finished;
-  if (!els.customForm.hidden) els.customInput.focus();
+  if (!els.customForm.hidden) {
+    els.customInput.focus();
+  }
 }
 
 function renderCharacters() {
@@ -702,4 +766,5 @@ els.customForm.addEventListener("submit", (event) => {
   resolveChoice(inferCustom(text));
 });
 
+renderDemoChrome();
 playVideo();
