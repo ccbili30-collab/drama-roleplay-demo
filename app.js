@@ -5,6 +5,10 @@ const SOURCE_INFO = {
   title: "海上旧约",
 };
 
+const SOURCE_THINKING_STEPS = ["正在接入故事..."];
+
+const GAME_LOADING_STEPS = ["正在坠入剧情"];
+
 const tools = [
   { name: "旧书海图", effect: { clue: 4 }, note: "强化线索" },
   { name: "分账旧约", effect: { prestige: 3 }, note: "强化威望" },
@@ -225,7 +229,6 @@ const state = {
 };
 
 const incomingSource = readIncomingSource();
-const loadingSteps = buildLoadingSteps();
 
 const $ = (selector) => document.querySelector(selector);
 
@@ -275,6 +278,7 @@ let bgmTimer = 0;
 const bgm = {
   context: null,
   master: null,
+  uiGain: null,
   playing: false,
 };
 
@@ -284,14 +288,6 @@ function readIncomingSource() {
     .map((key) => params.get(key)?.trim())
     .find(Boolean) || "";
   return incomingUrl || DEFAULT_SOURCE_URL;
-}
-
-function buildLoadingSteps() {
-  return [
-    "链接已接入",
-    "正在整理剧情片段",
-    "正在打开入戏入口",
-  ];
 }
 
 function shortenUrl(url) {
@@ -310,7 +306,6 @@ function renderSourceChrome() {
   els.sourceKicker.textContent = SOURCE_INFO.kicker;
   els.sourceTitle.textContent = SOURCE_INFO.title;
   els.sourceMeta.textContent = sourceMetaText();
-  els.loadingMeta.textContent = "剧情连接中，请稍候。";
 }
 
 function sleep(ms) {
@@ -322,8 +317,7 @@ function currentChapter() {
 }
 
 function activeDialogue() {
-  const chapter = currentChapter();
-  return !state.resolving && !state.finished ? chapter.dialogues?.[state.dialogueStep] : null;
+  return null;
 }
 
 function clamp(value) {
@@ -350,6 +344,9 @@ function ensureBgmGraph() {
   bgm.master = bgm.context.createGain();
   bgm.master.gain.value = 0.045;
   bgm.master.connect(bgm.context.destination);
+  bgm.uiGain = bgm.context.createGain();
+  bgm.uiGain.gain.value = 0.11;
+  bgm.uiGain.connect(bgm.context.destination);
 }
 
 function playTone(frequency, start, duration, type = "triangle", gain = 0.16) {
@@ -363,6 +360,64 @@ function playTone(frequency, start, duration, type = "triangle", gain = 0.16) {
   oscillator.connect(envelope).connect(bgm.master);
   oscillator.start(start);
   oscillator.stop(start + duration + 0.04);
+}
+
+function playUiTone(frequency, start, duration, type = "triangle", gain = 0.12) {
+  const oscillator = bgm.context.createOscillator();
+  const envelope = bgm.context.createGain();
+  oscillator.type = type;
+  oscillator.frequency.setValueAtTime(frequency, start);
+  envelope.gain.setValueAtTime(0.0001, start);
+  envelope.gain.exponentialRampToValueAtTime(gain, start + 0.01);
+  envelope.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+  oscillator.connect(envelope).connect(bgm.uiGain);
+  oscillator.start(start);
+  oscillator.stop(start + duration + 0.04);
+}
+
+async function playUiSound(kind = "tap") {
+  ensureBgmGraph();
+  if (!bgm.context || !bgm.uiGain) return;
+  if (bgm.context.state === "suspended") {
+    await bgm.context.resume();
+  }
+
+  const start = bgm.context.currentTime + 0.002;
+  if (kind === "choice") {
+    playUiTone(540, start, 0.04, "triangle", 0.12);
+    playUiTone(720, start + 0.03, 0.06, "sine", 0.08);
+    return;
+  }
+  if (kind === "confirm") {
+    playUiTone(480, start, 0.04, "triangle", 0.1);
+    playUiTone(760, start + 0.035, 0.08, "triangle", 0.12);
+    playUiTone(960, start + 0.07, 0.08, "sine", 0.06);
+    return;
+  }
+  if (kind === "toggle") {
+    playUiTone(420, start, 0.035, "sawtooth", 0.08);
+    playUiTone(610, start + 0.02, 0.05, "triangle", 0.08);
+    return;
+  }
+  playUiTone(620, start, 0.03, "triangle", 0.08);
+  playUiTone(820, start + 0.018, 0.04, "sine", 0.05);
+}
+
+function uiSoundKind(button) {
+  if (
+    button.matches(".source-submit") ||
+    button.matches(".swipe-gate") ||
+    button.matches(".dialogue-next")
+  ) {
+    return "confirm";
+  }
+  if (button.matches(".choice-card")) {
+    return "choice";
+  }
+  if (button.id === "bgmToggle") {
+    return "toggle";
+  }
+  return "tap";
 }
 
 function scheduleSuspenseLoop() {
@@ -440,15 +495,23 @@ function resetRunState() {
 }
 
 async function bootGame() {
-  setPanel("loading");
-  renderSourceChrome();
-  for (const step of loadingSteps) {
-    els.loadingText.textContent = `${step}...`;
-    await sleep(210);
-  }
+  await runLoadingSequence({
+    title: "正在进入剧情",
+    steps: GAME_LOADING_STEPS,
+    stepDuration: 180,
+  });
   resetRunState();
   setPanel("game");
   render();
+}
+
+async function runLoadingSequence({ title, steps, stepDuration = 1000 }) {
+  setPanel("loading");
+  els.loadingText.textContent = title;
+  for (const step of steps) {
+    els.loadingMeta.textContent = step;
+    await sleep(stepDuration);
+  }
 }
 
 function mergeEffects(...effects) {
@@ -476,13 +539,14 @@ function storyProgress(chapter) {
   return (chapter.prose || [chapter.setup]).join("\n\n");
 }
 
+function sceneBrief(chapter) {
+  return [chapter.setup, storyProgress(chapter)].filter(Boolean).join("\n\n");
+}
+
 function setSpeaker(name) {
-  const isNarration = name === "旁白";
-  els.speakerName.hidden = isNarration;
-  els.dialogueArea.classList.toggle("is-narration", isNarration);
-  if (!isNarration) {
-    els.speakerName.textContent = name;
-  }
+  els.speakerName.hidden = false;
+  els.dialogueArea.classList.toggle("is-narration", false);
+  els.speakerName.textContent = name;
 }
 
 function inferCustom(text) {
@@ -528,10 +592,10 @@ function resolveChoice(choice) {
   applyEffect(finalEffect);
   state.resolving = true;
   state.customOpen = false;
-  setSpeaker("你的行动");
-  els.storyText.textContent = choice.text;
+  setSpeaker("行动结果");
+  els.storyText.textContent = `你决定${choice.label}`;
   els.resultNote.hidden = false;
-  els.resultNote.textContent = [choice.result, toolsText].filter(Boolean).join("\n\n");
+  els.resultNote.textContent = [choice.text, choice.result, toolsText].filter(Boolean).join("\n\n");
   renderHud();
   renderTools();
   renderChoices();
@@ -544,7 +608,7 @@ function advanceChapter() {
   if (state.chapterIndex >= chapters.length - 1) {
     state.finished = true;
     state.resolving = false;
-    setSpeaker("本轮结局");
+    setSpeaker("终局回响");
     els.storyText.textContent = "海雾合拢，旧船上的灯还没有熄。";
     els.resultNote.hidden = false;
     els.resultNote.textContent =
@@ -597,23 +661,14 @@ function renderNovelPage() {
 function renderStory() {
   if (state.resolving || state.finished) return;
   const chapter = currentChapter();
-  const dialogue = activeDialogue();
-  if (dialogue) {
-    const character = characters[dialogue.actor];
-    setSpeaker(character?.name || dialogue.actor);
-    els.storyText.textContent = dialogue.text;
-    els.resultNote.hidden = false;
-    els.resultNote.textContent = "点击继续推进对话。";
-    return;
-  }
-  setSpeaker(chapter.speaker);
+  setSpeaker("当前处境");
   els.storyText.textContent = chapter.text;
   els.resultNote.hidden = false;
-  els.resultNote.textContent = storyProgress(chapter);
+  els.resultNote.textContent = sceneBrief(chapter);
 }
 
 function renderTools() {
-  els.toolRow.hidden = Boolean(activeDialogue());
+  els.toolRow.hidden = state.finished;
   if (els.toolRow.hidden) return;
   els.toolRow.replaceChildren(
     ...tools.map((tool) => {
@@ -636,11 +691,6 @@ function renderTools() {
 }
 
 function renderChoices() {
-  if (activeDialogue()) {
-    els.choiceGrid.replaceChildren();
-    els.choiceGrid.hidden = true;
-    return;
-  }
   els.choiceGrid.hidden = false;
   const chapter = currentChapter();
   const choiceButtons = state.finished
@@ -683,26 +733,12 @@ function renderCustom() {
 }
 
 function renderCharacters() {
-  const dialogue = activeDialogue();
-  els.game.classList.toggle("is-dialogue-mode", Boolean(dialogue));
-  els.dialogueNext.hidden = !dialogue;
-  els.characterStage.hidden = !dialogue;
-  if (!dialogue) {
-    els.leftSprite.removeAttribute("src");
-    els.rightSprite.removeAttribute("src");
-    return;
-  }
-
-  const actor = characters[dialogue.actor];
-  const otherKey = actor?.side === "right" ? dialogue.with || "uncle" : "hero";
-  const other = characters[otherKey];
-  const left = actor?.side === "left" ? actor : other?.side === "left" ? other : null;
-  const right = actor?.side === "right" ? actor : other?.side === "right" ? other : characters.hero;
-
-  els.leftSprite.src = left?.sprite || "";
-  els.rightSprite.src = right?.sprite || "";
-  els.leftSprite.classList.toggle("is-active", actor?.side === "left");
-  els.rightSprite.classList.toggle("is-active", actor?.side === "right");
+  els.game.classList.add("is-immersive-mode");
+  els.game.classList.remove("is-dialogue-mode");
+  els.dialogueNext.hidden = true;
+  els.characterStage.hidden = true;
+  els.leftSprite.removeAttribute("src");
+  els.rightSprite.removeAttribute("src");
 }
 
 function renderAdvance() {
@@ -723,9 +759,7 @@ function render() {
 }
 
 function advanceDialogue() {
-  if (!activeDialogue()) return;
-  state.dialogueStep += 1;
-  render();
+  return;
 }
 
 function enterGame() {
@@ -748,7 +782,17 @@ function acceptSource(rawValue) {
   state.sourceUrl = sourceUrl;
   state.sourceAccepted = true;
   syncSourceToUrl(sourceUrl);
-  playVideo();
+  runSourceThinking().then(() => {
+    playVideo();
+  });
+}
+
+async function runSourceThinking() {
+  await runLoadingSequence({
+    title: "正在连接故事",
+    steps: SOURCE_THINKING_STEPS,
+    stepDuration: 900,
+  });
 }
 
 els.dramaVideo.addEventListener("ended", finishVideo);
@@ -771,6 +815,12 @@ els.storyPlayer.addEventListener("touchend", (event) => {
 
 els.storyPlayer.addEventListener("wheel", (event) => {
   if (event.deltaY > 24) enterGame();
+});
+
+document.addEventListener("click", (event) => {
+  const button = event.target.closest("button");
+  if (!button || button.disabled) return;
+  void playUiSound(uiSoundKind(button));
 });
 
 els.sourceForm.addEventListener("submit", (event) => {
