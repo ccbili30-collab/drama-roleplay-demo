@@ -5,6 +5,11 @@ const SOURCE_INFO = {
   title: "海上旧约",
 };
 
+const SOURCE_THINKING_STEPS = [
+  "正在识别剧情入口...",
+  "正在接入故事...",
+];
+
 const GAME_LOADING_STEPS = ["正在坠入剧情"];
 
 const tools = [
@@ -273,8 +278,7 @@ let toastTimer = 0;
 let advanceTimer = 0;
 
 const audio = {
-  context: null,
-  uiGain: null,
+  clips: null,
 };
 
 function readIncomingSource() {
@@ -328,63 +332,80 @@ function showToast(text) {
   }, 1600);
 }
 
-function ensureAudioGraph() {
-  if (audio.context) return;
-  const AudioContext = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContext) {
-    showToast("当前浏览器不支持音效。");
-    return;
-  }
-  audio.context = new AudioContext();
-  audio.uiGain = audio.context.createGain();
-  audio.uiGain.gain.value = 0.13;
-  audio.uiGain.connect(audio.context.destination);
+function ensureAudioClips() {
+  if (audio.clips) return;
+  audio.clips = {
+    tap: createUiAudioClip({ frequencies: [620, 820], duration: 0.06, volume: 0.42 }),
+    choice: createUiAudioClip({ frequencies: [540, 720], duration: 0.09, volume: 0.48 }),
+    confirm: createUiAudioClip({ frequencies: [480, 760, 960], duration: 0.12, volume: 0.52 }),
+  };
 }
 
-function playUiTone(frequency, start, duration, type = "triangle", gain = 0.12) {
-  const oscillator = audio.context.createOscillator();
-  const envelope = audio.context.createGain();
-  oscillator.type = type;
-  oscillator.frequency.setValueAtTime(frequency, start);
-  envelope.gain.setValueAtTime(0.0001, start);
-  envelope.gain.exponentialRampToValueAtTime(gain, start + 0.01);
-  envelope.gain.exponentialRampToValueAtTime(0.0001, start + duration);
-  oscillator.connect(envelope).connect(audio.uiGain);
-  oscillator.start(start);
-  oscillator.stop(start + duration + 0.04);
+function createUiAudioClip({ frequencies, duration = 0.1, sampleRate = 22050, volume = 0.45 }) {
+  const frameCount = Math.max(1, Math.floor(sampleRate * duration));
+  const pcm = new Int16Array(frameCount);
+  for (let index = 0; index < frameCount; index += 1) {
+    const time = index / sampleRate;
+    const progress = index / frameCount;
+    const envelope = Math.max(0, 1 - progress) ** 2;
+    let sample = 0;
+    frequencies.forEach((frequency, toneIndex) => {
+      sample += Math.sin(2 * Math.PI * frequency * time) * (1 - toneIndex * 0.18);
+    });
+    sample /= Math.max(1, frequencies.length);
+    pcm[index] = Math.max(-1, Math.min(1, sample * envelope * volume)) * 32767;
+  }
+
+  const wavBytes = createWavBytes(pcm, sampleRate);
+  const blob = new Blob([wavBytes], { type: "audio/wav" });
+  return URL.createObjectURL(blob);
 }
 
-function runUiSound(kind = "tap") {
-  if (!audio.context || !audio.uiGain) return;
-  const start = audio.context.currentTime + 0.002;
-  if (kind === "choice") {
-    playUiTone(540, start, 0.04, "triangle", 0.12);
-    playUiTone(720, start + 0.03, 0.06, "sine", 0.08);
-    return;
+function createWavBytes(pcm, sampleRate) {
+  const bytesPerSample = 2;
+  const blockAlign = bytesPerSample;
+  const byteRate = sampleRate * blockAlign;
+  const dataSize = pcm.length * bytesPerSample;
+  const buffer = new ArrayBuffer(44 + dataSize);
+  const view = new DataView(buffer);
+
+  writeAscii(view, 0, "RIFF");
+  view.setUint32(4, 36 + dataSize, true);
+  writeAscii(view, 8, "WAVE");
+  writeAscii(view, 12, "fmt ");
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, byteRate, true);
+  view.setUint16(32, blockAlign, true);
+  view.setUint16(34, 16, true);
+  writeAscii(view, 36, "data");
+  view.setUint32(40, dataSize, true);
+
+  pcm.forEach((sample, index) => {
+    view.setInt16(44 + index * 2, sample, true);
+  });
+
+  return new Uint8Array(buffer);
+}
+
+function writeAscii(view, offset, text) {
+  for (let index = 0; index < text.length; index += 1) {
+    view.setUint8(offset + index, text.charCodeAt(index));
   }
-  if (kind === "confirm") {
-    playUiTone(480, start, 0.04, "triangle", 0.1);
-    playUiTone(760, start + 0.035, 0.08, "triangle", 0.12);
-    playUiTone(960, start + 0.07, 0.08, "sine", 0.06);
-    return;
-  }
-  if (kind === "toggle") {
-    playUiTone(420, start, 0.035, "sawtooth", 0.08);
-    playUiTone(610, start + 0.02, 0.05, "triangle", 0.08);
-    return;
-  }
-  playUiTone(620, start, 0.03, "triangle", 0.08);
-  playUiTone(820, start + 0.018, 0.04, "sine", 0.05);
 }
 
 function playUiSound(kind = "tap") {
-  ensureAudioGraph();
-  if (!audio.context || !audio.uiGain) return;
-  if (audio.context.state === "suspended") {
-    audio.context.resume().then(() => runUiSound(kind)).catch(() => {});
-    return;
+  ensureAudioClips();
+  const src = audio.clips?.[kind] || audio.clips?.tap;
+  if (!src) return;
+  const sound = new Audio(src);
+  sound.volume = 1;
+  sound.play().catch(() => {});
+  if (navigator.vibrate) {
+    navigator.vibrate(kind === "confirm" ? 16 : 10);
   }
-  runUiSound(kind);
 }
 
 function uiSoundKind(button) {
@@ -735,7 +756,17 @@ function acceptSource(rawValue) {
   state.sourceUrl = sourceUrl;
   state.sourceAccepted = true;
   syncSourceToUrl(sourceUrl);
-  playVideo();
+  runSourceThinking().then(() => {
+    playVideo();
+  });
+}
+
+async function runSourceThinking() {
+  await runLoadingSequence({
+    title: "Thinking...",
+    steps: SOURCE_THINKING_STEPS,
+    stepDuration: 520,
+  });
 }
 
 els.dramaVideo.addEventListener("ended", finishVideo);
