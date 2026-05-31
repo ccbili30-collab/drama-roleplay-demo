@@ -211,7 +211,7 @@ const chapters = [
 
 const state = {
   sourceUrl: "",
-  sourceAccepted: false,
+  sourceAccepted: true,
   chapterIndex: 0,
   selectedTools: new Set(),
   resolving: false,
@@ -232,10 +232,6 @@ const incomingSource = readIncomingSource();
 const $ = (selector) => document.querySelector(selector);
 
 const els = {
-  intake: $("#intakePanel"),
-  sourceForm: $("#sourceForm"),
-  sourceInput: $("#sourceInput"),
-  sourceSubmit: $("#sourceSubmit"),
   video: $("#videoPanel"),
   storyPlayer: $("#storyPlayer"),
   dramaVideo: $("#dramaVideo"),
@@ -436,7 +432,6 @@ function uiSoundKind(button) {
 }
 
 function setPanel(panel) {
-  els.intake.hidden = panel !== "intake";
   els.video.hidden = panel !== "video";
   els.loading.hidden = panel !== "loading";
   els.game.hidden = panel !== "game";
@@ -788,34 +783,6 @@ function enterGame() {
   bootGame();
 }
 
-function syncSourceToUrl(sourceUrl) {
-  const nextUrl = new URL(window.location.href);
-  nextUrl.searchParams.set("url", sourceUrl);
-  window.history.replaceState({}, "", nextUrl);
-}
-
-function acceptSource(rawValue) {
-  const sourceUrl = rawValue.trim();
-  if (!sourceUrl) {
-    showToast("先贴入短剧链接。");
-    return;
-  }
-  state.sourceUrl = sourceUrl;
-  state.sourceAccepted = true;
-  syncSourceToUrl(sourceUrl);
-  runSourceThinking().then(() => {
-    playVideo();
-  });
-}
-
-async function runSourceThinking() {
-  await runLoadingSequence({
-    title: "正在解析链接",
-    steps: buildSourceThinkingSteps(state.sourceUrl),
-    stepDuration: 1100,
-  });
-}
-
 els.dramaVideo.addEventListener("ended", finishVideo);
 els.swipeGate.addEventListener("click", enterGame);
 els.dialogueNext.addEventListener("click", advanceDialogue);
@@ -843,21 +810,6 @@ document.addEventListener("pointerdown", (event) => {
   playUiSound(uiSoundKind(button));
 }, true);
 
-els.sourceForm.addEventListener("submit", (event) => {
-  event.preventDefault();
-});
-
-els.sourceSubmit.addEventListener("click", () => {
-  acceptSource(els.sourceInput.value);
-});
-
-els.sourceInput.addEventListener("keydown", (event) => {
-  if (event.key === "Enter" && !event.shiftKey) {
-    event.preventDefault();
-    acceptSource(els.sourceInput.value);
-  }
-});
-
 els.customForm.addEventListener("submit", (event) => {
   event.preventDefault();
   const text = els.customInput.value.trim();
@@ -869,6 +821,6 @@ els.customForm.addEventListener("submit", (event) => {
   resolveChoice(inferCustom(text));
 });
 
-els.sourceInput.value = incomingSource;
+state.sourceUrl = incomingSource;
 renderSourceChrome();
-setPanel("intake");
+playVideo();
