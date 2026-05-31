@@ -5,8 +5,6 @@ const SOURCE_INFO = {
   title: "海上旧约",
 };
 
-const SOURCE_THINKING_STEPS = ["正在接入故事..."];
-
 const GAME_LOADING_STEPS = ["正在坠入剧情"];
 
 const tools = [
@@ -236,6 +234,7 @@ const els = {
   intake: $("#intakePanel"),
   sourceForm: $("#sourceForm"),
   sourceInput: $("#sourceInput"),
+  sourceSubmit: $("#sourceSubmit"),
   video: $("#videoPanel"),
   storyPlayer: $("#storyPlayer"),
   dramaVideo: $("#dramaVideo"),
@@ -736,17 +735,7 @@ function acceptSource(rawValue) {
   state.sourceUrl = sourceUrl;
   state.sourceAccepted = true;
   syncSourceToUrl(sourceUrl);
-  runSourceThinking().then(() => {
-    playVideo();
-  });
-}
-
-async function runSourceThinking() {
-  await runLoadingSequence({
-    title: "正在连接故事",
-    steps: SOURCE_THINKING_STEPS,
-    stepDuration: 900,
-  });
+  playVideo();
 }
 
 els.dramaVideo.addEventListener("ended", finishVideo);
@@ -778,7 +767,17 @@ document.addEventListener("pointerdown", (event) => {
 
 els.sourceForm.addEventListener("submit", (event) => {
   event.preventDefault();
+});
+
+els.sourceSubmit.addEventListener("click", () => {
   acceptSource(els.sourceInput.value);
+});
+
+els.sourceInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter" && !event.shiftKey) {
+    event.preventDefault();
+    acceptSource(els.sourceInput.value);
+  }
 });
 
 els.customForm.addEventListener("submit", (event) => {
