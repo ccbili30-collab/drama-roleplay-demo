@@ -1,9 +1,8 @@
-const DEFAULT_DEMO_SOURCE_URL = "https://v.douyin.com/sea-demo/";
+const DEFAULT_SOURCE_URL = "";
 
-const DEMO_SOURCE = {
-  kicker: "DEMO ROUTE",
-  title: "海上旧约 演示短剧",
-  mode: "固定演示模板",
+const SOURCE_INFO = {
+  kicker: "STORY LINK",
+  title: "海上旧约",
 };
 
 const tools = [
@@ -208,6 +207,8 @@ const chapters = [
 ];
 
 const state = {
+  sourceUrl: "",
+  sourceAccepted: false,
   chapterIndex: 0,
   selectedTools: new Set(),
   resolving: false,
@@ -223,12 +224,15 @@ const state = {
   },
 };
 
-const demoSource = readDemoSource();
-const loadingSteps = buildLoadingSteps(demoSource);
+const incomingSource = readIncomingSource();
+const loadingSteps = buildLoadingSteps();
 
 const $ = (selector) => document.querySelector(selector);
 
 const els = {
+  intake: $("#intakePanel"),
+  sourceForm: $("#sourceForm"),
+  sourceInput: $("#sourceInput"),
   video: $("#videoPanel"),
   storyPlayer: $("#storyPlayer"),
   dramaVideo: $("#dramaVideo"),
@@ -258,9 +262,9 @@ const els = {
   customInput: $("#customInput"),
   advanceBar: $("#advanceBar"),
   toast: $("#toast"),
-  demoSourceKicker: $("#demoSourceKicker"),
-  demoSourceTitle: $("#demoSourceTitle"),
-  demoSourceMeta: $("#demoSourceMeta"),
+  sourceKicker: $("#sourceKicker"),
+  sourceTitle: $("#sourceTitle"),
+  sourceMeta: $("#sourceMeta"),
 };
 
 let touchStartY = 0;
@@ -274,23 +278,19 @@ const bgm = {
   playing: false,
 };
 
-function readDemoSource() {
+function readIncomingSource() {
   const params = new URLSearchParams(window.location.search);
   const incomingUrl = ["source", "url", "link"]
     .map((key) => params.get(key)?.trim())
     .find(Boolean) || "";
-
-  return {
-    url: incomingUrl || DEFAULT_DEMO_SOURCE_URL,
-    hasIncomingUrl: Boolean(incomingUrl),
-  };
+  return incomingUrl || DEFAULT_SOURCE_URL;
 }
 
-function buildLoadingSteps(source) {
+function buildLoadingSteps() {
   return [
-    source.hasIncomingUrl ? "已接收演示链接" : "使用内置演示链接",
-    "命中固定短剧模板",
-    "载入预设剧情与跑团入口",
+    "链接已接入",
+    "正在整理剧情片段",
+    "正在打开入戏入口",
   ];
 }
 
@@ -299,20 +299,18 @@ function shortenUrl(url) {
   return `${url.slice(0, 24)}...${url.slice(-12)}`;
 }
 
-function demoSourceMetaText() {
-  const sourceText = demoSource.hasIncomingUrl
-    ? `收到链接：${shortenUrl(demoSource.url)}`
-    : "未传入外部链接，使用内置演示源";
-  return `${sourceText} · ${DEMO_SOURCE.mode}`;
+function sourceMetaText() {
+  if (!state.sourceUrl) {
+    return "等待接入";
+  }
+  return `已连接 · ${shortenUrl(state.sourceUrl)}`;
 }
 
-function renderDemoChrome() {
-  els.demoSourceKicker.textContent = DEMO_SOURCE.kicker;
-  els.demoSourceTitle.textContent = DEMO_SOURCE.title;
-  els.demoSourceMeta.textContent = demoSourceMetaText();
-  els.loadingMeta.textContent = demoSource.hasIncomingUrl
-    ? "演示模式下不会真实解析外部视频，统一映射到这条预设短剧。"
-    : "当前直接使用内置演示短剧，不请求任何外部解析服务。";
+function renderSourceChrome() {
+  els.sourceKicker.textContent = SOURCE_INFO.kicker;
+  els.sourceTitle.textContent = SOURCE_INFO.title;
+  els.sourceMeta.textContent = sourceMetaText();
+  els.loadingMeta.textContent = "剧情连接中，请稍候。";
 }
 
 function sleep(ms) {
@@ -396,6 +394,7 @@ async function toggleBgm() {
 }
 
 function setPanel(panel) {
+  els.intake.hidden = panel !== "intake";
   els.video.hidden = panel !== "video";
   els.loading.hidden = panel !== "loading";
   els.game.hidden = panel !== "game";
@@ -411,6 +410,7 @@ function resetVideo() {
 function playVideo() {
   resetVideo();
   setPanel("video");
+  renderSourceChrome();
   const playPromise = els.dramaVideo.play();
   if (playPromise?.catch) {
     playPromise.catch(() => showToast("点一下视频即可开始播放。"));
@@ -441,7 +441,7 @@ function resetRunState() {
 
 async function bootGame() {
   setPanel("loading");
-  renderDemoChrome();
+  renderSourceChrome();
   for (const step of loadingSteps) {
     els.loadingText.textContent = `${step}...`;
     await sleep(210);
@@ -729,8 +729,26 @@ function advanceDialogue() {
 }
 
 function enterGame() {
-  if (els.swipeGate.hidden) return;
+  if (!state.sourceAccepted || els.swipeGate.hidden) return;
   bootGame();
+}
+
+function syncSourceToUrl(sourceUrl) {
+  const nextUrl = new URL(window.location.href);
+  nextUrl.searchParams.set("url", sourceUrl);
+  window.history.replaceState({}, "", nextUrl);
+}
+
+function acceptSource(rawValue) {
+  const sourceUrl = rawValue.trim();
+  if (!sourceUrl) {
+    showToast("先贴入短剧链接。");
+    return;
+  }
+  state.sourceUrl = sourceUrl;
+  state.sourceAccepted = true;
+  syncSourceToUrl(sourceUrl);
+  playVideo();
 }
 
 els.dramaVideo.addEventListener("ended", finishVideo);
@@ -755,6 +773,11 @@ els.storyPlayer.addEventListener("wheel", (event) => {
   if (event.deltaY > 24) enterGame();
 });
 
+els.sourceForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  acceptSource(els.sourceInput.value);
+});
+
 els.customForm.addEventListener("submit", (event) => {
   event.preventDefault();
   const text = els.customInput.value.trim();
@@ -766,5 +789,6 @@ els.customForm.addEventListener("submit", (event) => {
   resolveChoice(inferCustom(text));
 });
 
-renderDemoChrome();
-playVideo();
+els.sourceInput.value = incomingSource;
+renderSourceChrome();
+setPanel("intake");
