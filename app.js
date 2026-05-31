@@ -249,7 +249,6 @@ const els = {
   statPrestige: $("#statPrestige"),
   statClue: $("#statClue"),
   statAlert: $("#statAlert"),
-  bgmToggle: $("#bgmToggle"),
   novelPage: $("#novelPage"),
   characterStage: $("#characterStage"),
   leftSprite: $("#leftSprite"),
@@ -273,13 +272,10 @@ const els = {
 let touchStartY = 0;
 let toastTimer = 0;
 let advanceTimer = 0;
-let bgmTimer = 0;
 
-const bgm = {
+const audio = {
   context: null,
-  master: null,
   uiGain: null,
-  playing: false,
 };
 
 function readIncomingSource() {
@@ -333,56 +329,35 @@ function showToast(text) {
   }, 1600);
 }
 
-function ensureBgmGraph() {
-  if (bgm.context) return;
+function ensureAudioGraph() {
+  if (audio.context) return;
   const AudioContext = window.AudioContext || window.webkitAudioContext;
   if (!AudioContext) {
-    showToast("当前浏览器不支持背景音乐。");
+    showToast("当前浏览器不支持音效。");
     return;
   }
-  bgm.context = new AudioContext();
-  bgm.master = bgm.context.createGain();
-  bgm.master.gain.value = 0.045;
-  bgm.master.connect(bgm.context.destination);
-  bgm.uiGain = bgm.context.createGain();
-  bgm.uiGain.gain.value = 0.11;
-  bgm.uiGain.connect(bgm.context.destination);
-}
-
-function playTone(frequency, start, duration, type = "triangle", gain = 0.16) {
-  const oscillator = bgm.context.createOscillator();
-  const envelope = bgm.context.createGain();
-  oscillator.type = type;
-  oscillator.frequency.setValueAtTime(frequency, start);
-  envelope.gain.setValueAtTime(0.0001, start);
-  envelope.gain.exponentialRampToValueAtTime(gain, start + 0.025);
-  envelope.gain.exponentialRampToValueAtTime(0.0001, start + duration);
-  oscillator.connect(envelope).connect(bgm.master);
-  oscillator.start(start);
-  oscillator.stop(start + duration + 0.04);
+  audio.context = new AudioContext();
+  audio.uiGain = audio.context.createGain();
+  audio.uiGain.gain.value = 0.13;
+  audio.uiGain.connect(audio.context.destination);
 }
 
 function playUiTone(frequency, start, duration, type = "triangle", gain = 0.12) {
-  const oscillator = bgm.context.createOscillator();
-  const envelope = bgm.context.createGain();
+  const oscillator = audio.context.createOscillator();
+  const envelope = audio.context.createGain();
   oscillator.type = type;
   oscillator.frequency.setValueAtTime(frequency, start);
   envelope.gain.setValueAtTime(0.0001, start);
   envelope.gain.exponentialRampToValueAtTime(gain, start + 0.01);
   envelope.gain.exponentialRampToValueAtTime(0.0001, start + duration);
-  oscillator.connect(envelope).connect(bgm.uiGain);
+  oscillator.connect(envelope).connect(audio.uiGain);
   oscillator.start(start);
   oscillator.stop(start + duration + 0.04);
 }
 
-async function playUiSound(kind = "tap") {
-  ensureBgmGraph();
-  if (!bgm.context || !bgm.uiGain) return;
-  if (bgm.context.state === "suspended") {
-    await bgm.context.resume();
-  }
-
-  const start = bgm.context.currentTime + 0.002;
+function runUiSound(kind = "tap") {
+  if (!audio.context || !audio.uiGain) return;
+  const start = audio.context.currentTime + 0.002;
   if (kind === "choice") {
     playUiTone(540, start, 0.04, "triangle", 0.12);
     playUiTone(720, start + 0.03, 0.06, "sine", 0.08);
@@ -403,6 +378,16 @@ async function playUiSound(kind = "tap") {
   playUiTone(820, start + 0.018, 0.04, "sine", 0.05);
 }
 
+function playUiSound(kind = "tap") {
+  ensureAudioGraph();
+  if (!audio.context || !audio.uiGain) return;
+  if (audio.context.state === "suspended") {
+    audio.context.resume().then(() => runUiSound(kind)).catch(() => {});
+    return;
+  }
+  runUiSound(kind);
+}
+
 function uiSoundKind(button) {
   if (
     button.matches(".source-submit") ||
@@ -414,38 +399,7 @@ function uiSoundKind(button) {
   if (button.matches(".choice-card")) {
     return "choice";
   }
-  if (button.id === "bgmToggle") {
-    return "toggle";
-  }
   return "tap";
-}
-
-function scheduleSuspenseLoop() {
-  if (!bgm.playing || !bgm.context) return;
-  const start = bgm.context.currentTime + 0.04;
-  const motif = [82.41, 92.5, 98, 110, 123.47, 110, 98, 92.5];
-  motif.forEach((frequency, index) => {
-    playTone(frequency, start + index * 0.36, 0.28, "triangle", 0.2);
-    playTone(frequency / 2, start + index * 0.36, 0.34, "sine", 0.11);
-  });
-  [65.41, 61.74, 58.27].forEach((frequency, index) => {
-    playTone(frequency, start + index * 1.08, 1.05, "sawtooth", 0.035);
-  });
-  bgmTimer = window.setTimeout(scheduleSuspenseLoop, 2880);
-}
-
-async function toggleBgm() {
-  ensureBgmGraph();
-  if (!bgm.context) return;
-  if (bgm.context.state === "suspended") await bgm.context.resume();
-  bgm.playing = !bgm.playing;
-  els.bgmToggle.setAttribute("aria-pressed", String(bgm.playing));
-  els.bgmToggle.classList.toggle("is-playing", bgm.playing);
-  els.bgmToggle.textContent = bgm.playing ? "BGM 已开" : "悬疑 BGM";
-  window.clearTimeout(bgmTimer);
-  if (bgm.playing) {
-    scheduleSuspenseLoop();
-  }
 }
 
 function setPanel(panel) {
@@ -797,7 +751,6 @@ async function runSourceThinking() {
 
 els.dramaVideo.addEventListener("ended", finishVideo);
 els.swipeGate.addEventListener("click", enterGame);
-els.bgmToggle.addEventListener("click", toggleBgm);
 els.dialogueNext.addEventListener("click", advanceDialogue);
 els.dialogueArea.addEventListener("click", (event) => {
   if (event.target === els.dialogueNext) return;
@@ -817,11 +770,11 @@ els.storyPlayer.addEventListener("wheel", (event) => {
   if (event.deltaY > 24) enterGame();
 });
 
-document.addEventListener("click", (event) => {
+document.addEventListener("pointerdown", (event) => {
   const button = event.target.closest("button");
   if (!button || button.disabled) return;
-  void playUiSound(uiSoundKind(button));
-});
+  playUiSound(uiSoundKind(button));
+}, true);
 
 els.sourceForm.addEventListener("submit", (event) => {
   event.preventDefault();
