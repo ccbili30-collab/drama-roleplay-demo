@@ -5,11 +5,6 @@ const SOURCE_INFO = {
   title: "海上旧约",
 };
 
-const SOURCE_THINKING_STEPS = [
-  "正在识别剧情入口...",
-  "正在接入故事...",
-];
-
 const GAME_LOADING_STEPS = ["正在坠入剧情"];
 
 const tools = [
@@ -292,6 +287,26 @@ function readIncomingSource() {
 function shortenUrl(url) {
   if (url.length <= 42) return url;
   return `${url.slice(0, 24)}...${url.slice(-12)}`;
+}
+
+function sourceHostLabel(url) {
+  try {
+    const { hostname } = new URL(url);
+    return hostname.replace(/^www\./, "");
+  } catch {
+    return "story-link";
+  }
+}
+
+function buildSourceThinkingSteps(url) {
+  const shortUrl = shortenUrl(url);
+  const host = sourceHostLabel(url);
+  return [
+    `正在校验链接来源 · ${host}`,
+    `正在读取剧情入口 · ${shortUrl}`,
+    "正在抽取可进入片段...",
+    "正在打开故事...",
+  ];
 }
 
 function sourceMetaText() {
@@ -763,9 +778,9 @@ function acceptSource(rawValue) {
 
 async function runSourceThinking() {
   await runLoadingSequence({
-    title: "Thinking...",
-    steps: SOURCE_THINKING_STEPS,
-    stepDuration: 520,
+    title: "正在解析链接",
+    steps: buildSourceThinkingSteps(state.sourceUrl),
+    stepDuration: 380,
   });
 }
 
