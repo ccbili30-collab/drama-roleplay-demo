@@ -1,4 +1,5 @@
-const DEFAULT_SOURCE_URL = "";
+const DEFAULT_SOURCE_URL =
+  "8.46 复制打开抖音，看看【呼哈短剧的作品】# AI短剧 https://v.douyin.com/G9jKxEOUzsM/ H@V.Lw HIi:/ :8pm 12/11";
 
 const SOURCE_INFO = {
   kicker: "STORY LINK",
@@ -277,11 +278,7 @@ const audio = {
 };
 
 function readIncomingSource() {
-  const params = new URLSearchParams(window.location.search);
-  const incomingUrl = ["source", "url", "link"]
-    .map((key) => params.get(key)?.trim())
-    .find(Boolean) || "";
-  return incomingUrl || DEFAULT_SOURCE_URL;
+  return DEFAULT_SOURCE_URL;
 }
 
 function shortenUrl(url) {
