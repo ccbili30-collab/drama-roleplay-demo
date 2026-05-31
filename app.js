@@ -331,7 +331,8 @@ function currentChapter() {
 }
 
 function activeDialogue() {
-  return null;
+  const chapter = currentChapter();
+  return !state.resolving && !state.finished ? chapter.dialogues?.[state.dialogueStep] : null;
 }
 
 function clamp(value) {
@@ -533,9 +534,12 @@ function sceneBrief(chapter) {
 }
 
 function setSpeaker(name) {
-  els.speakerName.hidden = false;
-  els.dialogueArea.classList.toggle("is-narration", false);
-  els.speakerName.textContent = name;
+  const isNarration = name === "旁白";
+  els.speakerName.hidden = isNarration;
+  els.dialogueArea.classList.toggle("is-narration", isNarration);
+  if (!isNarration) {
+    els.speakerName.textContent = name;
+  }
 }
 
 function inferCustom(text) {
@@ -650,6 +654,15 @@ function renderNovelPage() {
 function renderStory() {
   if (state.resolving || state.finished) return;
   const chapter = currentChapter();
+  const dialogue = activeDialogue();
+  if (dialogue) {
+    const character = characters[dialogue.actor];
+    setSpeaker(character?.name || dialogue.actor);
+    els.storyText.textContent = dialogue.text;
+    els.resultNote.hidden = false;
+    els.resultNote.textContent = "点击继续推进对话。";
+    return;
+  }
   setSpeaker("当前处境");
   els.storyText.textContent = chapter.text;
   els.resultNote.hidden = false;
@@ -657,7 +670,7 @@ function renderStory() {
 }
 
 function renderTools() {
-  els.toolRow.hidden = state.finished;
+  els.toolRow.hidden = state.finished || Boolean(activeDialogue());
   if (els.toolRow.hidden) return;
   els.toolRow.replaceChildren(
     ...tools.map((tool) => {
@@ -680,6 +693,11 @@ function renderTools() {
 }
 
 function renderChoices() {
+  if (activeDialogue()) {
+    els.choiceGrid.replaceChildren();
+    els.choiceGrid.hidden = true;
+    return;
+  }
   els.choiceGrid.hidden = false;
   const chapter = currentChapter();
   const choiceButtons = state.finished
@@ -722,12 +740,27 @@ function renderCustom() {
 }
 
 function renderCharacters() {
-  els.game.classList.add("is-immersive-mode");
-  els.game.classList.remove("is-dialogue-mode");
-  els.dialogueNext.hidden = true;
-  els.characterStage.hidden = true;
-  els.leftSprite.removeAttribute("src");
-  els.rightSprite.removeAttribute("src");
+  const dialogue = activeDialogue();
+  els.game.classList.toggle("is-dialogue-mode", Boolean(dialogue));
+  els.game.classList.toggle("is-immersive-mode", !dialogue);
+  els.dialogueNext.hidden = !dialogue;
+  els.characterStage.hidden = !dialogue;
+  if (!dialogue) {
+    els.leftSprite.removeAttribute("src");
+    els.rightSprite.removeAttribute("src");
+    return;
+  }
+
+  const actor = characters[dialogue.actor];
+  const otherKey = actor?.side === "right" ? dialogue.with || "uncle" : "hero";
+  const other = characters[otherKey];
+  const left = actor?.side === "left" ? actor : other?.side === "left" ? other : null;
+  const right = actor?.side === "right" ? actor : other?.side === "right" ? other : characters.hero;
+
+  els.leftSprite.src = left?.sprite || "";
+  els.rightSprite.src = right?.sprite || "";
+  els.leftSprite.classList.toggle("is-active", actor?.side === "left");
+  els.rightSprite.classList.toggle("is-active", actor?.side === "right");
 }
 
 function renderAdvance() {
@@ -748,7 +781,9 @@ function render() {
 }
 
 function advanceDialogue() {
-  return;
+  if (!activeDialogue()) return;
+  state.dialogueStep += 1;
+  render();
 }
 
 function enterGame() {
