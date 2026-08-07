@@ -1,5 +1,7 @@
 # Drama Roleplay Demo
 
+这是我四个月 AI 创作工具路线中的第三个阶段：在青蓝写作和 TBird Roundtable Box 之后，继续探索“内容不只被阅读，也可以被用户进入和参与”。后续的 [NovelX](https://github.com/ccbili30-collab/novelx) 和 [CreatX](https://github.com/ccbili30-collab/CreatX) 会把这条路线扩展到长期小说创作与更完整的交互作品。
+
 一个面向演示的短剧转互动剧情 MVP。
 
 它不是“真实解析任意短视频”的产品，而是一个固定样片、固定剧情、固定跑团入口的体验原型。我们现在只需要把同一条演示短剧，稳定地包装成“看完视频后随时入戏”的 AIGalgame。
